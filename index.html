@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRC Bank - Secure Payments for MRC Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .hero-bg-bank {
+            background-image: url('https://placehold.co/1920x1080/1e3a8a/ffffff?text=MRC+Bank'); /* Placeholder: Dark blueish bank theme */
+            background-size: cover;
+            background-position: center;
+        }
+        .advantage-icon {
+            transition: transform 0.3s ease;
+        }
+        .group:hover .advantage-icon {
+            transform: scale(1.1);
+        }
+        .cta-button {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
+            <div class="flex items-center space-x-5 text-lg">
+                <a href="#features" class="text-gray-600 hover:text-blue-700 font-medium">Features</a>
+                <a href="#benefits" class="text-gray-600 hover:text-blue-700 font-medium">Benefits</a>
+                <a href="login.html" class="text-gray-600 hover:text-blue-700 px-5 py-2 rounded-lg font-medium hover:bg-gray-100 transition duration-300">Login</a>
+                <a href="signup.html" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 cta-button shadow-md">Sign Up</a>
+            </div>
+        </nav>
+    </header>
+
+    <section id="hero" class="hero-bg-bank text-white">
+        <div class="min-h-[75vh] md:min-h-[85vh] flex items-center justify-center bg-black bg-opacity-60">
+            <div class="text-center p-10 max-w-4xl mx-auto">
+                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+                    Seamless Payments, Exclusively for <span class="text-blue-400">MRC Services</span>.
+                </h1>
+                <p class="text-xl md:text-2xl mb-10 text-gray-200">
+                    Experience the future of secure and effortless transactions within the MRC ecosystem. MRC Bank is designed for you.
+                </p>
+                <div class="space-x-4">
+                    <a href="signup.html" class="bg-yellow-400 text-blue-900 px-10 py-4 rounded-lg text-xl font-bold hover:bg-yellow-500 transition duration-300 cta-button shadow-xl">Get Started Now</a>
+                    <a href="#features" class="bg-transparent border-2 border-white text-white px-10 py-4 rounded-lg text-xl font-bold hover:bg-white hover:text-blue-700 transition duration-300 cta-button">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-16 md:py-24 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-extrabold text-center mb-6 text-blue-700">Why MRC Bank?</h2>
+            <p class="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">
+                MRC Bank offers a suite of features tailored to provide you with the most convenient and secure payment experience for all MRC services.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Ironclad Security</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Utilizing state-of-the-art encryption and security protocols to protect your funds and personal data at all times.</p>
+                </div>
+                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Instant Transactions</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Enjoy lightning-fast payments for MRC services. No more waiting, no more delays. Get what you need, when you need it.</p>
+                </div>
+                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Simplified Management</h3>
+                    <p class="text-gray-700 text-center leading-relaxed">Easily track your spending, view transaction history, and manage your MRC service payments all in one intuitive platform.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="benefits" class="py-16 md:py-24 bg-blue-700 text-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-extrabold text-center mb-16">Exclusive Benefits for MRC Users</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div class="order-2 md:order-1">
+                    <img src="https://placehold.co/600x400/3b82f6/ffffff?text=MRC+Services+Integration" alt="MRC Services Integration" class="rounded-xl shadow-2xl" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/ffffff?text=Visual';">
+                </div>
+                <div class="order-1 md:order-2 space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <h3 class="text-2xl font-semibold">Dedicated Support</h3>
+                            <p class="text-blue-100 mt-1">Access specialized customer support for all your MRC Bank related queries and needs.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <h3 class="text-2xl font-semibold">Zero Hidden Fees</h3>
+                            <p class="text-blue-100 mt-1">Transparent pricing with no unexpected charges for your MRC service payments.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                         <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <h3 class="text-2xl font-semibold">Exclusive Offers</h3>
+                            <p class="text-blue-100 mt-1">Unlock special discounts and promotions on MRC services when you pay with MRC Bank.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 md:py-24 bg-gray-100">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-extrabold text-blue-700 mb-6">Ready to Simplify Your MRC Payments?</h2>
+            <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+                Join MRC Bank today and step into a world of hassle-free transactions, top-tier security, and exclusive benefits.
+            </p>
+            <a href="signup.html" class="bg-blue-600 text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-blue-700 transition duration-300 cta-button shadow-xl">Create Your Account</a>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <a href="index.html" class="text-2xl font-bold text-blue-400 mb-4 inline-block">MRC Bank</a>
+            <p class="mb-6 text-gray-400">Secure & Seamless Payments for MRC Services.</p>
+            <div class="space-x-6 mb-6">
+                <a href="#" class="hover:text-blue-400">Privacy Policy</a>
+                <a href="#" class="hover:text-blue-400">Terms of Service</a>
+                <a href="#" class="hover:text-blue-400">Contact Us</a>
+            </div>
+            <p class="text-gray-500">&copy; <span id="currentYear"></span> MRC Bank. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
