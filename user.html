@@ -17,79 +17,120 @@
         .message-box.success { background-color: #28a745; }
         .message-box.error { background-color: #dc3545; }
 
-        .bank-card {
-            width: 350px; /* Adjust as needed */
-            height: 220px; /* Adjust as needed */
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); /* Dark blue to lighter blue gradient */
+        .card-container {
+            perspective: 1000px; /* For 3D effect */
+            width: 350px;
+            height: 220px;
+            cursor: pointer;
+        }
+        .bank-card-flipper {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .bank-card-flipper.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .bank-card-front, .bank-card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden; /* Hide the back of the panel during flip */
             border-radius: 15px;
             padding: 20px;
             color: white;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 6px 6px rgba(0, 0, 0, 0.23);
-            position: relative;
             overflow: hidden;
         }
-        .bank-card::before { /* Subtle pattern */
+        .bank-card-front {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); /* Dark blue to lighter blue gradient */
+        }
+        .bank-card-front::before { /* Subtle pattern for front */
             content: '';
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M10 0h12v12h12v14H0V14h10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             opacity: 0.5;
+            z-index: 0;
+        }
+        .bank-card-back {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); /* Slightly different gradient for back */
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around; /* Distribute space for back elements */
+        }
+        .card-content { /* To ensure content is above pseudo-elements */
+            position: relative;
+            z-index: 1;
         }
         .card-logo {
             font-size: 1.5rem;
             font-weight: 800;
-            position: relative;
         }
         .card-chip {
             width: 50px;
             height: 40px;
             background: linear-gradient(135deg, #d4af37, #c0c0c0); /* Gold to silver */
             border-radius: 5px;
-            position: relative;
         }
         .card-number {
-            font-family: 'Orbitron', sans-serif; /* Monospaced, futuristic font */
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.4rem;
             letter-spacing: 2px;
             margin-top: 20px;
-            position: relative;
         }
         .card-details-grid {
             display: grid;
-            grid-template-columns: 3fr 1fr; /* Card holder name takes more space */
-            gap: 10px; /* Gap between items */
-            align-items: end; /* Align items to the bottom of their grid area */
+            grid-template-columns: 3fr 1fr;
+            gap: 10px;
+            align-items: end;
             margin-top: 15px;
-            position: relative;
         }
-        .card-holder-name, .card-expiry, .card-cvv {
+        .card-holder-name, .card-expiry {
             font-size: 0.9rem;
         }
-        .card-holder-name span, .card-expiry span, .card-cvv span {
+        .card-holder-name span, .card-expiry span {
             display: block;
             font-size: 0.7rem;
-            color: #cbd5e1; /* Lighter text for labels */
+            color: #cbd5e1;
             margin-bottom: 2px;
         }
-        .card-cvv-section {
-            background-color: rgba(255,255,255,0.8);
-            color: #333;
-            padding: 5px 10px;
-            border-radius: 3px;
-            text-align: right;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            margin-top: 10px;
-            width: 100px; /* Fixed width for CVV display */
+        /* Back of card styling */
+        .magnetic-strip {
+            height: 40px;
+            background-color: #333;
+            width: 100%;
+            margin-top: 20px; /* Pushes it down a bit from the top */
         }
-        .card-signature-strip {
+        .signature-panel {
+            height: 40px;
             background-color: #e0e0e0;
-            height: 30px;
-            margin-top: 10px;
-            position: relative;
+            width: 80%;
+            margin: 15px auto 0 auto; /* Center it and provide some margin */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
         }
-
+        .cvv-display-back {
+            font-family: 'Orbitron', sans-serif;
+            font-style: italic;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .card-back-text {
+            font-size: 0.6rem;
+            text-align: center;
+            color: #e0e0e0;
+            padding: 0 10px;
+        }
+        .masked {
+            font-family: 'Orbitron', sans-serif; /* Ensure masked text uses same font */
+        }
     </style>
 </head>
 <body class="bg-gray-200 flex flex-col min-h-screen">
@@ -108,37 +149,51 @@
     <div id="userMessageBox" class="message-box"></div>
 
     <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
-        <div id="dashboardContent" class="hidden"> <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
+        <div id="dashboardContent" class="hidden"> 
+            <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
 
-            <div class="flex flex-col items-center md:items-start mb-12">
-                <div class="bank-card">
-                    <div class="flex justify-between items-start">
-                        <div class="card-logo">MRC Bank</div>
-                        <div class="card-chip"></div>
-                    </div>
-                    <div id="cardNumberDisplay" class="card-number">XXXX-XXXX-XXXX-XXXX</div>
-                    <div class="card-details-grid">
-                        <div class="card-holder-name">
-                            <span>CARD HOLDER</span>
-                            <div id="cardHolderNameDisplay" class="truncate">Full Name</div>
+            <div class="flex flex-col items-center md:items-start mb-6">
+                <div class="card-container" id="cardContainer">
+                    <div class="bank-card-flipper" id="bankCardFlipper">
+                        <div class="bank-card-front">
+                            <div class="card-content">
+                                <div class="flex justify-between items-start">
+                                    <div class="card-logo">MRC Bank</div>
+                                    <div class="card-chip"></div>
+                                </div>
+                                <div id="cardNumberDisplay" class="card-number">••••-••••-••••-••••</div>
+                                <div class="card-details-grid">
+                                    <div class="card-holder-name">
+                                        <span>CARD HOLDER</span>
+                                        <div id="cardHolderNameDisplay" class="truncate">Full Name</div>
+                                    </div>
+                                    <div class="card-expiry text-right">
+                                        <span>EXPIRES</span>
+                                        <div id="cardExpiryDisplay">MM/YY</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-expiry text-right">
-                            <span>EXPIRES</span>
-                            <div id="cardExpiryDisplay">MM/YY</div>
+                        <div class="bank-card-back">
+                            <div class="card-content">
+                                <div class="magnetic-strip"></div>
+                                <div class="signature-panel">
+                                    <div id="cardCvvDisplayBack" class="cvv-display-back">•••</div>
+                                </div>
+                                <p class="card-back-text mt-2">
+                                    This card is issued by MRC Bank and is for use with MRC Services only.
+                                    If found, please do not attempt to use.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 bg-gray-300 p-3 rounded-lg shadow-md w-[350px]">
-                     <div class="card-signature-strip mb-2"></div>
-                     <div class="flex justify-end">
-                        <div class="card-cvv-section">
-                            CVV: <span id="cardCvvDisplay">000</span>
-                        </div>
-                     </div>
-                </div>
+                <button id="toggleDetailsBtn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition duration-200">
+                    Show Details
+                </button>
             </div>
             
-            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mt-8">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Transaction History</h2>
                 <div id="transactionsList" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     <p class="text-gray-500">No transactions yet.</p>
@@ -163,15 +218,22 @@
             const logoutButtonEl = document.getElementById('logoutButton');
             const userMessageBoxEl = document.getElementById('userMessageBox');
             
+            const cardContainerEl = document.getElementById('cardContainer');
+            const bankCardFlipperEl = document.getElementById('bankCardFlipper');
             const cardNumberDisplayEl = document.getElementById('cardNumberDisplay');
             const cardHolderNameDisplayEl = document.getElementById('cardHolderNameDisplay');
             const cardExpiryDisplayEl = document.getElementById('cardExpiryDisplay');
-            const cardCvvDisplayEl = document.getElementById('cardCvvDisplay');
+            const cardCvvDisplayBackEl = document.getElementById('cardCvvDisplayBack'); // CVV on the back
+            const toggleDetailsBtnEl = document.getElementById('toggleDetailsBtn');
+
             const userBalanceHeaderEl = document.getElementById('userBalanceHeader');
             const transactionsListEl = document.getElementById('transactionsList');
             const dashboardContentEl = document.getElementById('dashboardContent');
             const loadingStateEl = document.getElementById('loadingState');
 
+            let actualCardNumber = "";
+            let actualCvv = "";
+            let detailsVisible = false;
 
             function showUserMessage(message, type = "success", duration = 3000) {
                 if (!userMessageBoxEl) return;
@@ -194,27 +256,25 @@
                     if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${currentUser.fullName.split(' ')[0]}!`;
                     if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${currentUser.fullName.split(' ')[0]}`;
                     
-                    // Populate card details
-                    if (cardNumberDisplayEl) cardNumberDisplayEl.textContent = currentUser.cardNumber || "N/A";
+                    actualCardNumber = currentUser.cardNumber || "N/A";
+                    actualCvv = currentUser.cvv || "N/A";
+
                     if (cardHolderNameDisplayEl) cardHolderNameDisplayEl.textContent = currentUser.fullName || "N/A";
                     if (cardExpiryDisplayEl) cardExpiryDisplayEl.textContent = currentUser.expiryDate || "N/A";
-                    if (cardCvvDisplayEl) cardCvvDisplayEl.textContent = currentUser.cvv || "N/A";
                     
-                    // Display balance
+                    updateCardDetailsVisibility(); // Initial state (hidden)
+
                     const balance = currentUser.balance !== undefined ? parseFloat(currentUser.balance).toFixed(2) : "0.00";
                     if (userBalanceHeaderEl) userBalanceHeaderEl.textContent = `Balance: ${balance} MRC`;
 
-                    // Display transactions
                     if (transactionsListEl) {
-                        transactionsListEl.innerHTML = ''; // Clear default
+                        transactionsListEl.innerHTML = ''; 
                         if (currentUser.transactions && currentUser.transactions.length > 0) {
-                            currentUser.transactions.slice().reverse().forEach(tx => { // Show newest first
+                            currentUser.transactions.slice().reverse().forEach(tx => {
                                 const txDiv = document.createElement('div');
                                 txDiv.className = `flex justify-between items-center p-4 rounded-lg shadow ${tx.type === 'deposit' ? 'bg-green-50' : 'bg-red-50'}`;
-                                
                                 const amountColor = tx.type === 'deposit' ? 'text-green-600' : 'text-red-600';
                                 const amountSign = tx.type === 'deposit' ? '+' : '-';
-
                                 txDiv.innerHTML = `
                                     <div>
                                         <p class="font-semibold text-gray-800">${tx.description}</p>
@@ -230,16 +290,47 @@
                     }
 
                 } else {
-                    // User data not found in localStorage, corrupted state
                     showUserMessage("Error loading your account data. Please try logging in again.", "error");
                     setTimeout(() => { window.location.href = 'login.html'; }, 2500);
                 }
 
             } else {
-                // Not logged in
                 showUserMessage("You are not logged in. Redirecting to login page...", "error");
                 setTimeout(() => { window.location.href = 'login.html'; }, 2000);
             }
+
+            function updateCardDetailsVisibility() {
+                if (detailsVisible) {
+                    cardNumberDisplayEl.textContent = actualCardNumber;
+                    cardNumberDisplayEl.classList.remove('masked');
+                    cardCvvDisplayBackEl.textContent = actualCvv; // Show CVV on back
+                    toggleDetailsBtnEl.textContent = "Hide Details";
+                } else {
+                    // Mask card number: show first 4, last 4, rest are dots
+                    const firstFour = actualCardNumber.substring(0, 4);
+                    const lastFour = actualCardNumber.substring(actualCardNumber.length - 4);
+                    const middleMasked = actualCardNumber.substring(4, actualCardNumber.length - 4).replace(/[0-9]/g, '•').replace(/-/g, ' '); // replace hyphens with space for better visual
+                    cardNumberDisplayEl.textContent = `${firstFour} ${middleMasked} ${lastFour}`;
+                    cardNumberDisplayEl.classList.add('masked');
+                    
+                    cardCvvDisplayBackEl.textContent = "•••"; // Mask CVV on back
+                    toggleDetailsBtnEl.textContent = "Show Details";
+                }
+            }
+
+            if (toggleDetailsBtnEl) {
+                toggleDetailsBtnEl.addEventListener('click', () => {
+                    detailsVisible = !detailsVisible;
+                    updateCardDetailsVisibility();
+                });
+            }
+            
+            if (cardContainerEl) {
+                cardContainerEl.addEventListener('click', () => {
+                    bankCardFlipperEl.classList.toggle('is-flipped');
+                });
+            }
+
 
             if (logoutButtonEl) {
                 logoutButtonEl.addEventListener('click', () => {
