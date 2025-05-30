@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - MRC Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet"> <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .message-box {
+            position: fixed; top: 20px; right: 20px; padding: 1rem; border-radius: 0.5rem;
+            color: white; z-index: 1000; display: none; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .message-box.success { background-color: #28a745; }
+        .message-box.error { background-color: #dc3545; }
+
+        .bank-card {
+            width: 350px; /* Adjust as needed */
+            height: 220px; /* Adjust as needed */
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); /* Dark blue to lighter blue gradient */
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 6px 6px rgba(0, 0, 0, 0.23);
+            position: relative;
+            overflow: hidden;
+        }
+        .bank-card::before { /* Subtle pattern */
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M10 0h12v12h12v14H0V14h10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        .card-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            position: relative;
+        }
+        .card-chip {
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #d4af37, #c0c0c0); /* Gold to silver */
+            border-radius: 5px;
+            position: relative;
+        }
+        .card-number {
+            font-family: 'Orbitron', sans-serif; /* Monospaced, futuristic font */
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            position: relative;
+        }
+        .card-details-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr; /* Card holder name takes more space */
+            gap: 10px; /* Gap between items */
+            align-items: end; /* Align items to the bottom of their grid area */
+            margin-top: 15px;
+            position: relative;
+        }
+        .card-holder-name, .card-expiry, .card-cvv {
+            font-size: 0.9rem;
+        }
+        .card-holder-name span, .card-expiry span, .card-cvv span {
+            display: block;
+            font-size: 0.7rem;
+            color: #cbd5e1; /* Lighter text for labels */
+            margin-bottom: 2px;
+        }
+        .card-cvv-section {
+            background-color: rgba(255,255,255,0.8);
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 3px;
+            text-align: right;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100px; /* Fixed width for CVV display */
+        }
+        .card-signature-strip {
+            background-color: #e0e0e0;
+            height: 30px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-200 flex flex-col min-h-screen">
+
+    <header class="bg-white shadow-lg">
+        <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
+            <div class="flex items-center space-x-6 text-lg">
+                <span id="userBalanceHeader" class="font-semibold text-xl text-green-600">Balance: 0.00 MRC</span>
+                <span id="userGreetingNav" class="text-gray-700 font-medium"></span>
+                <button id="logoutButton" class="bg-red-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div id="userMessageBox" class="message-box"></div>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
+        <div id="dashboardContent" class="hidden"> <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
+
+            <div class="flex flex-col items-center md:items-start mb-12">
+                <div class="bank-card">
+                    <div class="flex justify-between items-start">
+                        <div class="card-logo">MRC Bank</div>
+                        <div class="card-chip"></div>
+                    </div>
+                    <div id="cardNumberDisplay" class="card-number">XXXX-XXXX-XXXX-XXXX</div>
+                    <div class="card-details-grid">
+                        <div class="card-holder-name">
+                            <span>CARD HOLDER</span>
+                            <div id="cardHolderNameDisplay" class="truncate">Full Name</div>
+                        </div>
+                        <div class="card-expiry text-right">
+                            <span>EXPIRES</span>
+                            <div id="cardExpiryDisplay">MM/YY</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 bg-gray-300 p-3 rounded-lg shadow-md w-[350px]">
+                     <div class="card-signature-strip mb-2"></div>
+                     <div class="flex justify-end">
+                        <div class="card-cvv-section">
+                            CVV: <span id="cardCvvDisplay">000</span>
+                        </div>
+                     </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Transaction History</h2>
+                <div id="transactionsList" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    <p class="text-gray-500">No transactions yet.</p>
+                </div>
+            </div>
+        </div>
+         <div id="loadingState" class="text-center py-20">
+            <p class="text-xl text-gray-600">Loading your account details...</p>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-8 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-400">&copy; <span id="currentYearUser"></span> MRC Bank. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const welcomeMessageEl = document.getElementById('welcomeMessage');
+            const userGreetingNavEl = document.getElementById('userGreetingNav');
+            const logoutButtonEl = document.getElementById('logoutButton');
+            const userMessageBoxEl = document.getElementById('userMessageBox');
+            
+            const cardNumberDisplayEl = document.getElementById('cardNumberDisplay');
+            const cardHolderNameDisplayEl = document.getElementById('cardHolderNameDisplay');
+            const cardExpiryDisplayEl = document.getElementById('cardExpiryDisplay');
+            const cardCvvDisplayEl = document.getElementById('cardCvvDisplay');
+            const userBalanceHeaderEl = document.getElementById('userBalanceHeader');
+            const transactionsListEl = document.getElementById('transactionsList');
+            const dashboardContentEl = document.getElementById('dashboardContent');
+            const loadingStateEl = document.getElementById('loadingState');
+
+
+            function showUserMessage(message, type = "success", duration = 3000) {
+                if (!userMessageBoxEl) return;
+                userMessageBoxEl.textContent = message;
+                userMessageBoxEl.className = `message-box ${type}`;
+                userMessageBoxEl.style.display = 'block';
+                setTimeout(() => { userMessageBoxEl.style.display = 'none'; }, duration);
+            }
+
+            const loggedInUserEmail = sessionStorage.getItem('mrcBankLoggedInUserEmail');
+            
+            if (loggedInUserEmail) {
+                const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                const currentUser = users.find(user => user.email === loggedInUserEmail);
+
+                if (currentUser) {
+                    loadingStateEl.style.display = 'none';
+                    dashboardContentEl.classList.remove('hidden');
+
+                    if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${currentUser.fullName.split(' ')[0]}!`;
+                    if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${currentUser.fullName.split(' ')[0]}`;
+                    
+                    // Populate card details
+                    if (cardNumberDisplayEl) cardNumberDisplayEl.textContent = currentUser.cardNumber || "N/A";
+                    if (cardHolderNameDisplayEl) cardHolderNameDisplayEl.textContent = currentUser.fullName || "N/A";
+                    if (cardExpiryDisplayEl) cardExpiryDisplayEl.textContent = currentUser.expiryDate || "N/A";
+                    if (cardCvvDisplayEl) cardCvvDisplayEl.textContent = currentUser.cvv || "N/A";
+                    
+                    // Display balance
+                    const balance = currentUser.balance !== undefined ? parseFloat(currentUser.balance).toFixed(2) : "0.00";
+                    if (userBalanceHeaderEl) userBalanceHeaderEl.textContent = `Balance: ${balance} MRC`;
+
+                    // Display transactions
+                    if (transactionsListEl) {
+                        transactionsListEl.innerHTML = ''; // Clear default
+                        if (currentUser.transactions && currentUser.transactions.length > 0) {
+                            currentUser.transactions.slice().reverse().forEach(tx => { // Show newest first
+                                const txDiv = document.createElement('div');
+                                txDiv.className = `flex justify-between items-center p-4 rounded-lg shadow ${tx.type === 'deposit' ? 'bg-green-50' : 'bg-red-50'}`;
+                                
+                                const amountColor = tx.type === 'deposit' ? 'text-green-600' : 'text-red-600';
+                                const amountSign = tx.type === 'deposit' ? '+' : '-';
+
+                                txDiv.innerHTML = `
+                                    <div>
+                                        <p class="font-semibold text-gray-800">${tx.description}</p>
+                                        <p class="text-sm text-gray-500">${new Date(tx.date).toLocaleDateString()}</p>
+                                    </div>
+                                    <p class="font-semibold text-lg ${amountColor}">${amountSign}${parseFloat(tx.amount).toFixed(2)} MRC</p>
+                                `;
+                                transactionsListEl.appendChild(txDiv);
+                            });
+                        } else {
+                            transactionsListEl.innerHTML = '<p class="text-gray-500">No transactions yet.</p>';
+                        }
+                    }
+
+                } else {
+                    // User data not found in localStorage, corrupted state
+                    showUserMessage("Error loading your account data. Please try logging in again.", "error");
+                    setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+                }
+
+            } else {
+                // Not logged in
+                showUserMessage("You are not logged in. Redirecting to login page...", "error");
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+            }
+
+            if (logoutButtonEl) {
+                logoutButtonEl.addEventListener('click', () => {
+                    sessionStorage.removeItem('mrcBankLoggedInUserEmail');
+                    sessionStorage.removeItem('mrcBankLoggedInUserFullName');
+                    showUserMessage("You have been logged out successfully.", "success");
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                });
+            }
+        });
+        
+        document.getElementById('currentYearUser').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
