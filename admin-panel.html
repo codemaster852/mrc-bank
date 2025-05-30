@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - MRC Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-button { transition: all 0.3s ease; }
+        .tab-button.active { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
+        .modal { 
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; 
+            overflow: auto; background-color: rgba(0,0,0,0.6);
+            align-items: center; justify-content: center; 
+        }
+        .modal-content { 
+            background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; 
+            width: 90%; max-width: 500px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close-button { 
+            color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+            line-height: 1; /* Better vertical alignment */
+        }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        /* Custom scrollbar for user list table */
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-blue-700 text-white shadow-xl">
+        <div class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <h1 class="text-2xl font-extrabold">MRC Bank - Administrator Panel</h1>
+            <button id="adminLogoutButton" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition duration-150">Logout</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                <h3 class="text-lg font-semibold text-gray-500">Total Users</h3>
+                <p id="totalUsersStat" class="text-4xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                <h3 class="text-lg font-semibold text-gray-500">Total Combined Balance</h3>
+                <p id="totalBalanceStat" class="text-4xl font-bold text-green-600">0.00 MRC</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">User Accounts</h2>
+                <button id="openAddUserModalBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition duration-150">Add New User</button>
+            </div>
+            <div class="table-container overflow-x-auto max-h-[500px]">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card Number</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance (MRC)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUserList" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Add New Bank User</h3>
+                <span class="close-button" onclick="closeModal('addUserModal')">&times;</span>
+            </div>
+            <form id="addUserForm" class="space-y-4">
+                <div>
+                    <label for="addUserName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="addUserName" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="addUserEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="addUserEmail" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="addUserPassword" class="block text-sm font-medium text-gray-700">Password (min. 8 chars)</label>
+                    <input type="password" id="addUserPassword" required minlength="8" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                 <div>
+                    <label for="addUserBalance" class="block text-sm font-medium text-gray-700">Initial Balance (MRC)</label>
+                    <input type="number" id="addUserBalance" value="100" min="0" step="0.01" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-150">Create User</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modifyBalanceModal" class="modal">
+        <div class="modal-content">
+             <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Modify User Balance</h3>
+                <span class="close-button" onclick="closeModal('modifyBalanceModal')">&times;</span>
+            </div>
+            <form id="modifyBalanceForm" class="space-y-4">
+                <input type="hidden" id="modifyBalanceUserEmail">
+                <p>Modifying balance for: <strong id="modifyBalanceUserNameDisplay"></strong></p>
+                <div>
+                    <label for="balanceAction" class="block text-sm font-medium text-gray-700">Action</label>
+                    <select id="balanceAction" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="add">Add Money</option>
+                        <option value="remove">Remove Money</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="modifyAmount" class="block text-sm font-medium text-gray-700">Amount (MRC)</label>
+                    <input type="number" id="modifyAmount" required min="0.01" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-150">Apply Change</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Admin Auth Check
+        if (sessionStorage.getItem('mrcBankAdminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        const adminLogoutButton = document.getElementById('adminLogoutButton');
+        if (adminLogoutButton) {
+            adminLogoutButton.addEventListener('click', () => {
+                sessionStorage.removeItem('mrcBankAdminLoggedIn');
+                window.location.href = 'admin-login.html';
+            });
+        }
+
+        // DOM Elements
+        const totalUsersStatEl = document.getElementById('totalUsersStat');
+        const totalBalanceStatEl = document.getElementById('totalBalanceStat');
+        const adminUserListEl = document.getElementById('adminUserList');
+        const openAddUserModalBtnEl = document.getElementById('openAddUserModalBtn');
+        const addUserModalEl = document.getElementById('addUserModal');
+        const addUserFormEl = document.getElementById('addUserForm');
+        const modifyBalanceModalEl = document.getElementById('modifyBalanceModal');
+        const modifyBalanceFormEl = document.getElementById('modifyBalanceForm');
+        const modifyBalanceUserEmailInputEl = document.getElementById('modifyBalanceUserEmail');
+        const modifyBalanceUserNameDisplayEl = document.getElementById('modifyBalanceUserNameDisplay');
+
+
+        // Modal functions
+        function openModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'flex'; // Use flex for centering
+        }
+        function closeModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none'; 
+        }
+        // Close modal if clicked outside content
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+
+
+        // --- User Data Management ---
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+        }
+        function saveUsers(users) {
+            localStorage.setItem('mrcBankUsers', JSON.stringify(users));
+        }
+        function generateCardNumberAdmin() {
+            let number = '5021'; 
+            for (let i = 0; i < 3; i++) {
+                number += '-' + Math.floor(1000 + Math.random() * 9000);
+            }
+            return number;
+        }
+        function generateCVVAdmin() {
+            return Math.floor(100 + Math.random() * 900).toString();
+        }
+
+
+        // --- UI Rendering ---
+        function renderAdminDashboard() {
+            const users = getUsers();
+            
+            // Stats
+            totalUsersStatEl.textContent = users.length;
+            const totalBalance = users.reduce((sum, user) => sum + (user.balance || 0), 0);
+            totalBalanceStatEl.textContent = `${totalBalance.toFixed(2)} MRC`;
+
+            // User List
+            adminUserListEl.innerHTML = ''; // Clear existing list
+            if (users.length === 0) {
+                adminUserListEl.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No users found.</td></tr>';
+                return;
+            }
+
+            users.forEach(user => {
+                const row = adminUserListEl.insertRow();
+                row.className = user.isBanned ? 'bg-red-100 hover:bg-red-200' : 'hover:bg-gray-50';
+                
+                row.insertCell().textContent = user.fullName;
+                row.insertCell().textContent = user.email;
+                row.insertCell().textContent = user.cardNumber;
+                row.insertCell().textContent = (user.balance || 0).toFixed(2);
+                
+                const statusCell = row.insertCell();
+                statusCell.textContent = user.isBanned ? 'Banned' : 'Active';
+                statusCell.className = `px-6 py-4 whitespace-nowrap text-sm font-semibold ${user.isBanned ? 'text-red-600' : 'text-green-600'}`;
+
+                const actionsCell = row.insertCell();
+                actionsCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2';
+                
+                const banButton = document.createElement('button');
+                banButton.textContent = user.isBanned ? 'Unban' : 'Ban';
+                banButton.className = `px-3 py-1 rounded-md text-xs ${user.isBanned ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`;
+                banButton.onclick = () => toggleBanUser(user.email);
+                actionsCell.appendChild(banButton);
+
+                const modifyBalanceButton = document.createElement('button');
+                modifyBalanceButton.textContent = 'Balance +/-';
+                modifyBalanceButton.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs';
+                modifyBalanceButton.onclick = () => openModifyBalanceModal(user.email, user.fullName);
+                actionsCell.appendChild(modifyBalanceButton);
+            });
+        }
+
+        // --- Event Handlers & Actions ---
+        if (openAddUserModalBtnEl) {
+            openAddUserModalBtnEl.addEventListener('click', () => openModal('addUserModal'));
+        }
+
+        if (addUserFormEl) {
+            addUserFormEl.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const users = getUsers();
+                const fullName = document.getElementById('addUserName').value;
+                const email = document.getElementById('addUserEmail').value;
+                const password = document.getElementById('addUserPassword').value;
+                const balance = parseFloat(document.getElementById('addUserBalance').value);
+
+                if (users.find(u => u.email === email)) {
+                    alert('User with this email already exists.');
+                    return;
+                }
+                if (password.length < 8) {
+                    alert('Password must be at least 8 characters.');
+                    return;
+                }
+
+                const newUser = {
+                    fullName,
+                    email,
+                    password, // WARNING: Plain text password
+                    cardNumber: generateCardNumberAdmin(),
+                    cvv: generateCVVAdmin(),
+                    expiryDate: "Forever",
+                    balance: balance || 0,
+                    transactions: balance > 0 ? [{ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin initial deposit", amount: balance, type: "deposit" }] : [],
+                    isBanned: false
+                };
+                users.push(newUser);
+                saveUsers(users);
+                renderAdminDashboard();
+                closeModal('addUserModal');
+                addUserFormEl.reset();
+                 document.getElementById('addUserBalance').value = "100"; // Reset initial balance field
+            });
+        }
+
+        function toggleBanUser(email) {
+            const users = getUsers();
+            const userIndex = users.findIndex(u => u.email === email);
+            if (userIndex !== -1) {
+                users[userIndex].isBanned = !users[userIndex].isBanned;
+                saveUsers(users);
+                renderAdminDashboard();
+            }
+        }
+
+        function openModifyBalanceModal(email, fullName) {
+            modifyBalanceUserEmailInputEl.value = email;
+            modifyBalanceUserNameDisplayEl.textContent = fullName;
+            document.getElementById('modifyAmount').value = ''; // Clear previous amount
+            openModal('modifyBalanceModal');
+        }
+
+        if (modifyBalanceFormEl) {
+            modifyBalanceFormEl.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const users = getUsers();
+                const email = modifyBalanceUserEmailInputEl.value;
+                const action = document.getElementById('balanceAction').value;
+                const amount = parseFloat(document.getElementById('modifyAmount').value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    alert('Please enter a valid positive amount.');
+                    return;
+                }
+
+                const userIndex = users.findIndex(u => u.email === email);
+                if (userIndex !== -1) {
+                    const user = users[userIndex];
+                    if (action === 'remove' && (user.balance || 0) < amount) {
+                        alert('Cannot remove more than the current balance.');
+                        return;
+                    }
+
+                    user.balance = user.balance || 0; // Ensure balance exists
+                    if (!user.transactions) user.transactions = []; // Ensure transactions array exists
+
+                    if (action === 'add') {
+                        user.balance += amount;
+                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin credit", amount: amount, type: "deposit" });
+                    } else if (action === 'remove') {
+                        user.balance -= amount;
+                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin debit", amount: amount, type: "payment" });
+                    }
+                    saveUsers(users);
+                    renderAdminDashboard();
+                    closeModal('modifyBalanceModal');
+                } else {
+                    alert('User not found.');
+                }
+            });
+        }
+
+        // Initial Load
+        renderAdminDashboard();
+    </script>
+</body>
+</html>
