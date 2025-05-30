@@ -111,7 +111,6 @@
     </footer>
 
     <script>
-        // Placeholder for signup logic (using localStorage for demo)
         const signupForm = document.getElementById('signupForm');
         const signupMessage = document.getElementById('signupMessage');
 
@@ -121,6 +120,18 @@
             signupMessage.className = `message-box ${type}`;
             signupMessage.style.display = 'block';
             setTimeout(() => { signupMessage.style.display = 'none'; }, 3000);
+        }
+
+        function generateCardNumber() {
+            let number = '5021'; // MRC Bank prefix
+            for (let i = 0; i < 3; i++) {
+                number += '-' + Math.floor(1000 + Math.random() * 9000);
+            }
+            return number;
+        }
+
+        function generateCVV() {
+            return Math.floor(100 + Math.random() * 900).toString();
         }
 
         signupForm.addEventListener('submit', (e) => {
@@ -149,11 +160,30 @@
                 showMessage("This email is already registered.", "error"); return;
             }
 
-            users.push({ fullName, email, password }); // WARNING: Storing plain text passwords
+            const newUser = { 
+                fullName, 
+                email, 
+                password, // WARNING: Storing plain text passwords
+                cardNumber: generateCardNumber(),
+                cvv: generateCVV(),
+                expiryDate: "Forever", // As requested
+                balance: 100.00, // Initial balance
+                transactions: [
+                    {
+                        id: crypto.randomUUID(), // Unique ID for transaction
+                        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                        description: "Initial account deposit",
+                        amount: 100.00,
+                        type: "deposit" // 'deposit' or 'payment'
+                    }
+                ]
+            };
+
+            users.push(newUser);
             localStorage.setItem('mrcBankUsers', JSON.stringify(users));
 
-            showMessage("Account created successfully! Redirecting to login...", "success");
-            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+            showMessage("Account created successfully! You received 100 MRC. Redirecting to login...", "success");
+            setTimeout(() => { window.location.href = 'login.html'; }, 2500);
         });
         document.getElementById('currentYearSignup').textContent = new Date().getFullYear();
     </script>
