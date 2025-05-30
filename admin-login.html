@@ -3,456 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Account - MRC Bank</title>
+    <title>Admin Login - MRC Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet"> 
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
         .message-box {
-            position: fixed; top: 20px; right: 20px; padding: 1rem; border-radius: 0.5rem;
-            color: white; z-index: 1000; display: none; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem; /* Tailwind's rounded-md */
+            display: none; /* Hidden by default */
         }
-        .message-box.success { background-color: #28a745; }
-        .message-box.error { background-color: #dc3545; }
-
-        .card-container {
-            perspective: 1000px; 
-            width: 350px;
-            height: 220px;
-            cursor: pointer;
-        }
-        .bank-card-flipper {
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            position: relative;
-        }
-        .bank-card-flipper.is-flipped {
-            transform: rotateY(180deg);
-        }
-        .bank-card-front, .bank-card-back {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            backface-visibility: hidden; 
-            border-radius: 15px;
-            padding: 20px;
-            color: white;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 6px 6px rgba(0, 0, 0, 0.23);
-            overflow: hidden;
-        }
-        .bank-card-front {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-        }
-        .bank-card-front::before { 
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M10 0h12v12h12v14H0V14h10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.5;
-            z-index: 0;
-        }
-        .bank-card-back {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); 
-            transform: rotateY(180deg);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-        }
-        .card-content { 
-            position: relative;
-            z-index: 1;
-        }
-        .card-logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
-        .card-chip {
-            width: 50px;
-            height: 40px;
-            background: linear-gradient(135deg, #d4af37, #c0c0c0); 
-            border-radius: 5px;
-        }
-        .card-number {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            letter-spacing: 2px;
-            margin-top: 20px;
-        }
-        .card-details-grid {
-            display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 10px;
-            align-items: end;
-            margin-top: 15px;
-        }
-        .card-holder-name, .card-expiry {
-            font-size: 0.9rem;
-        }
-        .card-holder-name span, .card-expiry span {
-            display: block;
-            font-size: 0.7rem;
-            color: #cbd5e1;
-            margin-bottom: 2px;
-        }
-        .magnetic-strip {
-            height: 40px;
-            background-color: #333;
-            width: 100%;
-            margin-top: 20px;
-        }
-        .signature-panel {
-            height: 40px;
-            background-color: #e0e0e0;
-            width: 80%;
-            margin: 15px auto 0 auto; 
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-        }
-        .cvv-display-back {
-            font-family: 'Orbitron', sans-serif;
-            font-style: italic;
-            color: #333;
-            font-size: 1.1rem;
-        }
-        .card-back-text {
-            font-size: 0.6rem;
-            text-align: center;
-            color: #e0e0e0;
-            padding: 0 10px;
-        }
-        .masked {
-            font-family: 'Orbitron', sans-serif; 
+        .message-box.error {
+            color: #842029;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
         }
     </style>
 </head>
-<body class="bg-gray-200 flex flex-col min-h-screen">
+<body class="bg-gray-200 flex items-center justify-center min-h-screen p-4">
+    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-2xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-700">MRC Bank</h1>
+            <h2 class="mt-2 text-2xl font-semibold text-gray-700">Administrator Access</h2>
+        </div>
+        
+        <div id="adminLoginMessage" class="message-box"></div>
 
-    <header class="bg-white shadow-lg">
-        <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
-            <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
-            <div class="flex items-center space-x-6 text-lg">
-                <span id="userBalanceHeader" class="font-semibold text-xl text-green-600">Balance: 0.00 MRC</span>
-                <span id="userGreetingNav" class="text-gray-700 font-medium"></span>
-                <button id="logoutButton" class="bg-red-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-600 transition duration-300">Logout</button>
+        <form id="adminLoginForm" class="space-y-6">
+            <div>
+                <label for="admin-username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input id="admin-username" name="username" type="text" required
+                       class="mt-1 appearance-none block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
-        </nav>
-    </header>
-
-    <div id="userMessageBox" class="message-box"></div>
-
-    <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
-        <div id="dashboardContent" class="hidden"> 
-            <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 flex flex-col items-center md:items-start">
-                    <div class="card-container" id="cardContainer">
-                        <div class="bank-card-flipper" id="bankCardFlipper">
-                            <div class="bank-card-front">
-                                <div class="card-content">
-                                    <div class="flex justify-between items-start">
-                                        <div class="card-logo">MRC Bank</div>
-                                        <div class="card-chip"></div>
-                                    </div>
-                                    <div id="cardNumberDisplay" class="card-number">••••-••••-••••-••••</div>
-                                    <div class="card-details-grid">
-                                        <div class="card-holder-name">
-                                            <span>CARD HOLDER</span>
-                                            <div id="cardHolderNameDisplay" class="truncate">Full Name</div>
-                                        </div>
-                                        <div class="card-expiry text-right">
-                                            <span>EXPIRES</span>
-                                            <div id="cardExpiryDisplay">MM/YY</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="bank-card-back">
-                                <div class="card-content">
-                                    <div class="magnetic-strip"></div>
-                                    <div class="signature-panel">
-                                        <div id="cardCvvDisplayBack" class="cvv-display-back">•••</div>
-                                    </div>
-                                    <p class="card-back-text mt-2">
-                                        This card is issued by MRC Bank and is for use with MRC Services only.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button id="toggleDetailsBtn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition duration-200 self-center md:self-start">
-                        Show Details
-                    </button>
-                </div>
-
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Send Money</h2>
-                        <form id="sendMoneyForm" class="space-y-4">
-                            <div>
-                                <label for="recipientCardNumber" class="block text-sm font-medium text-gray-700">Recipient's Card Number</label>
-                                <input type="text" id="recipientCardNumber" name="recipientCardNumber" required
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                       placeholder="5021-XXXX-XXXX-XXXX">
-                            </div>
-                            <div>
-                                <label for="sendAmount" class="block text-sm font-medium text-gray-700">Amount (MRC)</label>
-                                <input type="number" id="sendAmount" name="sendAmount" required min="0.01" step="0.01"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                       placeholder="0.00">
-                            </div>
-                            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-                                Send Money
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Transaction History</h2>
-                        <div id="transactionsList" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                            <p class="text-gray-500">No transactions yet.</p>
-                        </div>
-                    </div>
-                </div>
+            <div>
+                <label for="admin-password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input id="admin-password" name="password" type="password" required
+                       class="mt-1 appearance-none block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
-        </div>
-         <div id="loadingState" class="text-center py-20">
-            <p class="text-xl text-gray-600">Loading your account details...</p>
-        </div>
-    </main>
-
-    <footer class="bg-gray-900 text-white py-8 mt-auto">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-gray-400">&copy; <span id="currentYearUser"></span> MRC Bank. All rights reserved.</p>
-        </div>
-    </footer>
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                    Sign In
+                </button>
+            </div>
+        </form>
+         <p class="mt-6 text-center text-xs text-gray-500">
+            <a href="index.html" class="font-medium text-blue-600 hover:text-blue-500">← Back to Main Site</a>
+        </p>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const welcomeMessageEl = document.getElementById('welcomeMessage');
-            const userGreetingNavEl = document.getElementById('userGreetingNav');
-            const logoutButtonEl = document.getElementById('logoutButton');
-            const userMessageBoxEl = document.getElementById('userMessageBox');
-            
-            const cardContainerEl = document.getElementById('cardContainer');
-            const bankCardFlipperEl = document.getElementById('bankCardFlipper');
-            const cardNumberDisplayEl = document.getElementById('cardNumberDisplay');
-            const cardHolderNameDisplayEl = document.getElementById('cardHolderNameDisplay');
-            const cardExpiryDisplayEl = document.getElementById('cardExpiryDisplay');
-            const cardCvvDisplayBackEl = document.getElementById('cardCvvDisplayBack');
-            const toggleDetailsBtnEl = document.getElementById('toggleDetailsBtn');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const adminLoginMessage = document.getElementById('adminLoginMessage');
 
-            const userBalanceHeaderEl = document.getElementById('userBalanceHeader');
-            const transactionsListEl = document.getElementById('transactionsList');
-            const dashboardContentEl = document.getElementById('dashboardContent');
-            const loadingStateEl = document.getElementById('loadingState');
-            const sendMoneyFormEl = document.getElementById('sendMoneyForm');
+        function showAdminMessage(message, type = "error") {
+            if (!adminLoginMessage) return;
+            adminLoginMessage.textContent = message;
+            adminLoginMessage.className = `message-box ${type}`; // Ensure type class is applied
+            adminLoginMessage.style.display = 'block';
+            setTimeout(() => { adminLoginMessage.style.display = 'none'; }, 3000);
+        }
 
-            let actualCardNumber = "";
-            let actualCvv = "";
-            let detailsVisible = false;
-            let currentUserData = null; // Store the current user's full data object
+        adminLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            adminLoginMessage.style.display = 'none'; // Hide previous messages
 
-            function showUserMessage(message, type = "success", duration = 3000) {
-                if (!userMessageBoxEl) return;
-                userMessageBoxEl.textContent = message;
-                userMessageBoxEl.className = `message-box ${type}`;
-                userMessageBoxEl.style.display = 'block';
-                setTimeout(() => { userMessageBoxEl.style.display = 'none'; }, duration);
-            }
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
 
-            const loggedInUserEmail = sessionStorage.getItem('mrcBankLoggedInUserEmail');
-            
-            if (loggedInUserEmail) {
-                loadUserData();
+            // Hardcoded admin credentials
+            const ADMIN_USERNAME = "Mostafa";
+            const ADMIN_PASSWORD = "admin123";
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('mrcBankAdminLoggedIn', 'true'); // Use a specific key for admin
+                window.location.href = 'admin-panel.html';
             } else {
-                showUserMessage("You are not logged in. Redirecting to login page...", "error");
-                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-            }
-
-            function loadUserData() {
-                const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                currentUserData = users.find(user => user.email === loggedInUserEmail);
-
-                if (currentUserData) {
-                    loadingStateEl.style.display = 'none';
-                    dashboardContentEl.classList.remove('hidden');
-
-                    if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${currentUserData.fullName.split(' ')[0]}!`;
-                    if (userGreetingNavEl) userGreetingNavEl.textContent = `Hi, ${currentUserData.fullName.split(' ')[0]}`;
-                    
-                    actualCardNumber = currentUserData.cardNumber || "N/A";
-                    actualCvv = currentUserData.cvv || "N/A";
-
-                    if (cardHolderNameDisplayEl) cardHolderNameDisplayEl.textContent = currentUserData.fullName || "N/A";
-                    if (cardExpiryDisplayEl) cardExpiryDisplayEl.textContent = currentUserData.expiryDate || "N/A";
-                    
-                    updateCardDetailsVisibility();
-                    updateBalanceDisplay();
-                    renderTransactions();
-
-                } else {
-                    showUserMessage("Error loading your account data. Please try logging in again.", "error");
-                    setTimeout(() => { window.location.href = 'login.html'; }, 2500);
-                }
-            }
-            
-            function updateBalanceDisplay() {
-                const balance = currentUserData.balance !== undefined ? parseFloat(currentUserData.balance).toFixed(2) : "0.00";
-                if (userBalanceHeaderEl) userBalanceHeaderEl.textContent = `Balance: ${balance} MRC`;
-            }
-
-            function renderTransactions() {
-                 if (transactionsListEl) {
-                    transactionsListEl.innerHTML = ''; 
-                    if (currentUserData.transactions && currentUserData.transactions.length > 0) {
-                        currentUserData.transactions.slice().reverse().forEach(tx => {
-                            const txDiv = document.createElement('div');
-                            txDiv.className = `flex justify-between items-center p-4 rounded-lg shadow ${tx.type === 'deposit' ? 'bg-green-50' : 'bg-red-50'}`;
-                            const amountColor = tx.type === 'deposit' ? 'text-green-600' : 'text-red-600';
-                            const amountSign = tx.type === 'deposit' ? '+' : '-';
-                            txDiv.innerHTML = `
-                                <div>
-                                    <p class="font-semibold text-gray-800">${tx.description}</p>
-                                    <p class="text-sm text-gray-500">${new Date(tx.date).toLocaleDateString()}</p>
-                                </div>
-                                <p class="font-semibold text-lg ${amountColor}">${amountSign}${parseFloat(tx.amount).toFixed(2)} MRC</p>
-                            `;
-                            transactionsListEl.appendChild(txDiv);
-                        });
-                    } else {
-                        transactionsListEl.innerHTML = '<p class="text-gray-500">No transactions yet.</p>';
-                    }
-                }
-            }
-
-
-            function updateCardDetailsVisibility() {
-                if (detailsVisible) {
-                    cardNumberDisplayEl.textContent = actualCardNumber;
-                    cardNumberDisplayEl.classList.remove('masked');
-                    cardCvvDisplayBackEl.textContent = actualCvv;
-                    toggleDetailsBtnEl.textContent = "Hide Details";
-                } else {
-                    const firstFour = actualCardNumber.substring(0, 4);
-                    const lastFour = actualCardNumber.substring(actualCardNumber.length - 4);
-                    const middleMasked = actualCardNumber.substring(4, actualCardNumber.length - 4).replace(/[0-9]/g, '•').replace(/-/g, ' ');
-                    cardNumberDisplayEl.textContent = `${firstFour} ${middleMasked} ${lastFour}`;
-                    cardNumberDisplayEl.classList.add('masked');
-                    cardCvvDisplayBackEl.textContent = "•••";
-                    toggleDetailsBtnEl.textContent = "Show Details";
-                }
-            }
-
-            if (toggleDetailsBtnEl) {
-                toggleDetailsBtnEl.addEventListener('click', () => {
-                    detailsVisible = !detailsVisible;
-                    updateCardDetailsVisibility();
-                });
-            }
-            
-            if (cardContainerEl) {
-                cardContainerEl.addEventListener('click', () => {
-                    bankCardFlipperEl.classList.toggle('is-flipped');
-                });
-            }
-
-            if (sendMoneyFormEl) {
-                sendMoneyFormEl.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    if (!currentUserData) {
-                        showUserMessage("Error: User data not loaded.", "error");
-                        return;
-                    }
-
-                    const recipientCardNumber = document.getElementById('recipientCardNumber').value.trim();
-                    const amount = parseFloat(document.getElementById('sendAmount').value);
-
-                    if (!recipientCardNumber || !amount || amount <= 0) {
-                        showUserMessage("Please enter a valid recipient card number and amount.", "error");
-                        return;
-                    }
-
-                    if (recipientCardNumber === currentUserData.cardNumber) {
-                        showUserMessage("You cannot send money to your own account.", "error");
-                        return;
-                    }
-
-                    if (currentUserData.balance < amount) {
-                        showUserMessage("Insufficient balance.", "error");
-                        return;
-                    }
-
-                    let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    const recipientUserIndex = users.findIndex(user => user.cardNumber === recipientCardNumber);
-
-                    if (recipientUserIndex === -1) {
-                        showUserMessage("Recipient card number not found.", "error");
-                        return;
-                    }
-
-                    // Update sender's data
-                    const senderUserIndex = users.findIndex(user => user.email === loggedInUserEmail);
-                    if (senderUserIndex === -1) { // Should not happen if logged in
-                        showUserMessage("Error processing transaction. Please log in again.", "error");
-                        return;
-                    }
-                    
-                    users[senderUserIndex].balance -= amount;
-                    users[senderUserIndex].transactions.push({
-                        id: crypto.randomUUID(),
-                        date: new Date().toISOString().split('T')[0],
-                        description: `Sent to card ending ${recipientCardNumber.slice(-4)} (${users[recipientUserIndex].fullName})`,
-                        amount: amount,
-                        type: "payment"
-                    });
-
-                    // Update recipient's data
-                    users[recipientUserIndex].balance += amount;
-                     if (!users[recipientUserIndex].transactions) { // Ensure transactions array exists
-                        users[recipientUserIndex].transactions = [];
-                    }
-                    users[recipientUserIndex].transactions.push({
-                        id: crypto.randomUUID(),
-                        date: new Date().toISOString().split('T')[0],
-                        description: `Received from ${currentUserData.fullName}`,
-                        amount: amount,
-                        type: "deposit"
-                    });
-
-                    localStorage.setItem('mrcBankUsers', JSON.stringify(users));
-                    
-                    // Update current user's data in memory and UI
-                    currentUserData = users[senderUserIndex];
-                    updateBalanceDisplay();
-                    renderTransactions();
-                    
-                    showUserMessage(`Successfully sent ${amount.toFixed(2)} MRC to ${users[recipientUserIndex].fullName}.`, "success");
-                    sendMoneyFormEl.reset();
-                });
-            }
-
-
-            if (logoutButtonEl) {
-                logoutButtonEl.addEventListener('click', () => {
-                    sessionStorage.removeItem('mrcBankLoggedInUserEmail');
-                    sessionStorage.removeItem('mrcBankLoggedInUserFullName');
-                    showUserMessage("You have been logged out successfully.", "success");
-                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-                });
+                showAdminMessage("Invalid admin username or password.");
             }
         });
-        
-        document.getElementById('currentYearUser').textContent = new Date().getFullYear();
     </script>
-
 </body>
 </html>
