@@ -16,6 +16,7 @@
         }
         .message-box.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
         .message-box.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
+        .message-box.info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
         .points-highlight {
             background: linear-gradient(135deg, #fef08a, #facc15); /* yellow-200 to yellow-400 */
             color: #713f12; /* yellow-800 */
@@ -24,6 +25,10 @@
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        .task-card {
+            background-color: #f9fafb; /* gray-50 */
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -41,15 +46,49 @@
 
     <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
         <div id="pointsPageContent" class="hidden">
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-extrabold text-gray-800">My MRC Points</h1>
-                <div class="points-highlight p-4 rounded-lg shadow-md text-center">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">My MRC Points</h1>
+                <div class="points-highlight p-4 rounded-lg shadow-md text-center w-full md:w-auto">
                     <p class="text-sm font-medium">Your Points Balance</p>
                     <p id="pointsBalanceDisplay" class="text-4xl font-bold">0</p>
                 </div>
             </div>
 
             <div id="pointsPageMessageBox" class="message-box"></div>
+            <div id="bannedUserPointsWarning" class="message-box error hidden !static !max-w-full text-center mb-6">Your account is banned. Points earning and redemption are disabled.</div>
+
+
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Earn More Points</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="task-card p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-700 mb-2">Daily Login Bonus</h3>
+                        <p class="text-sm text-gray-600 mb-3">Claim 5 points every day you visit!</p>
+                        <button id="claimDailyBonusButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Claim 5 Points
+                        </button>
+                    </div>
+
+                    <div class="task-card p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-teal-700 mb-2">Learn & Earn</h3>
+                        <p class="text-sm text-gray-600 mb-3">"Learn about MRC SecurePay" and earn 10 points.</p>
+                        <button id="completeTaskButton" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Mark as Completed
+                        </button>
+                    </div>
+                    
+                    <div class="task-card p-4 rounded-lg md:col-span-2 lg:col-span-1">
+                        <h3 class="text-lg font-semibold text-purple-700 mb-2">Enter Promo Code</h3>
+                        <form id="promoCodeForm" class="space-y-3">
+                            <input type="text" id="promoCodeInput" placeholder="Enter code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <button type="submit" id="applyPromoCodeButton" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Apply Code
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
 
             <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mb-8">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Redeem Points</h2>
@@ -109,9 +148,22 @@
             const pointsPageContentEl = document.getElementById('pointsPageContent');
             const pointsLoadingStateEl = document.getElementById('pointsLoadingState');
             const redeemPointsButtonEl = document.getElementById('redeemPointsButton');
+            const bannedUserPointsWarningEl = document.getElementById('bannedUserPointsWarning');
 
+            // New elements for earning points
+            const claimDailyBonusButtonEl = document.getElementById('claimDailyBonusButton');
+            const completeTaskButtonEl = document.getElementById('completeTaskButton');
+            const promoCodeFormEl = document.getElementById('promoCodeForm');
+            const promoCodeInputEl = document.getElementById('promoCodeInput');
+            const applyPromoCodeButtonEl = document.getElementById('applyPromoCodeButton');
 
-            let currentBankUser = null; // To store the full user object
+            let currentBankUser = null; 
+            const DAILY_BONUS_POINTS = 5;
+            const TASK_SECUREPAY_POINTS = 10;
+            const PREDEFINED_PROMO_CODES = {
+                "WELCOME10": { points: 10, message: "Welcome bonus!" },
+                "MRCBOOST20": { points: 20, message: "Special boost!" }
+            };
 
             function showPointsPageMessage(message, type = "success", duration = 3000) {
                 if (!pointsPageMessageBoxEl) return;
@@ -144,14 +196,16 @@
 
             function loadPointsUserData() {
                 const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                currentBankUser = users.find(user => user.email === mrcBankLoggedInUserEmail);
+                const userIndex = users.findIndex(user => user.email === mrcBankLoggedInUserEmail);
 
-                if (currentBankUser) {
+                if (userIndex !== -1) {
+                    currentBankUser = users[userIndex]; // Keep a reference to the user object in the array
                     pointsLoadingStateEl.style.display = 'none';
                     pointsPageContentEl.classList.remove('hidden');
                     
                     displayPointsBalance();
                     renderPointsHistory();
+                    updateEarnPointsUI(); // Update UI for earning points
 
                     if (currentBankUser.isBanned === true) {
                         handleBannedPointsPage();
@@ -164,11 +218,16 @@
             
             function handleBannedPointsPage() {
                 if (redeemPointsButtonEl) redeemPointsButtonEl.disabled = true;
-                const formInputs = redeemPointsFormEl.querySelectorAll('input');
-                formInputs.forEach(input => input.disabled = true);
-                showPointsPageMessage("Your account is banned. Points management is disabled.", "error", 6000);
+                if (claimDailyBonusButtonEl) claimDailyBonusButtonEl.disabled = true;
+                if (completeTaskButtonEl) completeTaskButtonEl.disabled = true;
+                if (applyPromoCodeButtonEl) applyPromoCodeButtonEl.disabled = true;
+                if (promoCodeInputEl) promoCodeInputEl.disabled = true;
+                
+                const redeemFormInputs = redeemPointsFormEl.querySelectorAll('input');
+                redeemFormInputs.forEach(input => input.disabled = true);
+                
+                if(bannedUserPointsWarningEl) bannedUserPointsWarningEl.style.display = 'block';
             }
-
 
             function displayPointsBalance() {
                 if (pointsBalanceDisplayEl && currentBankUser) {
@@ -178,7 +237,7 @@
 
             function renderPointsHistory() {
                 if (!pointsHistoryListEl || !currentBankUser) return;
-                pointsHistoryListEl.innerHTML = ''; // Clear existing
+                pointsHistoryListEl.innerHTML = ''; 
 
                 if (currentBankUser.pointsHistory && currentBankUser.pointsHistory.length > 0) {
                     currentBankUser.pointsHistory.slice().reverse().forEach(entry => {
@@ -188,11 +247,11 @@
                         
                         const pointsCell = row.insertCell();
                         pointsCell.textContent = entry.points;
-                        pointsCell.className = `font-medium ${entry.type === 'earned' ? 'text-green-600' : 'text-red-600'}`;
+                        pointsCell.className = `font-medium ${entry.points > 0 ? 'text-green-600' : 'text-red-600'}`;
                         
                         const typeCell = row.insertCell();
                         typeCell.textContent = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
-                        typeCell.className = `${entry.type === 'earned' ? 'text-green-700' : 'text-red-700'}`;
+                        typeCell.className = `${entry.points > 0 ? 'text-green-700' : 'text-red-700'}`;
                     });
                 } else {
                     const row = pointsHistoryListEl.insertRow();
@@ -202,7 +261,117 @@
                     cell.textContent = "No points activity yet.";
                 }
             }
+            
+            function saveUserAndUpdate(updatedUser) {
+                let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                const userIndex = users.findIndex(u => u.email === updatedUser.email);
+                if (userIndex !== -1) {
+                    users[userIndex] = updatedUser;
+                    localStorage.setItem('mrcBankUsers', JSON.stringify(users));
+                    currentBankUser = updatedUser; // Update in-memory reference
+                    displayPointsBalance();
+                    renderPointsHistory();
+                    updateEarnPointsUI(); // Re-check button states
+                } else {
+                     showPointsPageMessage("Error saving user data.", "error");
+                }
+            }
 
+            // --- Earn Points Logic ---
+            function updateEarnPointsUI() {
+                if (!currentBankUser) return;
+
+                // Daily Bonus
+                const today = new Date().toISOString().split('T')[0];
+                if (currentBankUser.lastDailyBonusClaimed === today) {
+                    claimDailyBonusButtonEl.disabled = true;
+                    claimDailyBonusButtonEl.textContent = "Claimed Today";
+                } else {
+                    claimDailyBonusButtonEl.disabled = false;
+                    claimDailyBonusButtonEl.textContent = `Claim ${DAILY_BONUS_POINTS} Points`;
+                }
+
+                // Task Completion
+                if (currentBankUser.taskSecurePayCompleted === true) {
+                    completeTaskButtonEl.disabled = true;
+                    completeTaskButtonEl.textContent = "Task Completed";
+                } else {
+                    completeTaskButtonEl.disabled = false;
+                    completeTaskButtonEl.textContent = "Mark as Completed";
+                }
+            }
+
+            if (claimDailyBonusButtonEl) {
+                claimDailyBonusButtonEl.addEventListener('click', () => {
+                    if (!currentBankUser || currentBankUser.isBanned) return;
+                    const today = new Date().toISOString().split('T')[0];
+                    if (currentBankUser.lastDailyBonusClaimed !== today) {
+                        currentBankUser.points = (currentBankUser.points || 0) + DAILY_BONUS_POINTS;
+                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                        currentBankUser.pointsHistory.push({
+                            id: crypto.randomUUID(), date: today,
+                            description: "Daily Login Bonus", points: DAILY_BONUS_POINTS, type: "earned"
+                        });
+                        currentBankUser.lastDailyBonusClaimed = today;
+                        saveUserAndUpdate(currentBankUser);
+                        showPointsPageMessage(`You claimed ${DAILY_BONUS_POINTS} points!`, "success");
+                    } else {
+                        showPointsPageMessage("Daily bonus already claimed today.", "info");
+                    }
+                });
+            }
+
+            if (completeTaskButtonEl) {
+                completeTaskButtonEl.addEventListener('click', () => {
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.taskSecurePayCompleted) return;
+                    
+                    currentBankUser.points = (currentBankUser.points || 0) + TASK_SECUREPAY_POINTS;
+                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                    currentBankUser.pointsHistory.push({
+                        id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0],
+                        description: "Completed 'Learn about MRC SecurePay'", points: TASK_SECUREPAY_POINTS, type: "earned"
+                    });
+                    currentBankUser.taskSecurePayCompleted = true;
+                    saveUserAndUpdate(currentBankUser);
+                    showPointsPageMessage(`Task completed! You earned ${TASK_SECUREPAY_POINTS} points.`, "success");
+                });
+            }
+
+            if (promoCodeFormEl) {
+                promoCodeFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (!currentBankUser || currentBankUser.isBanned) return;
+
+                    const code = promoCodeInputEl.value.toUpperCase().trim();
+                    if (!code) {
+                        showPointsPageMessage("Please enter a promo code.", "error"); return;
+                    }
+
+                    const promo = PREDEFINED_PROMO_CODES[code];
+                    if (!promo) {
+                        showPointsPageMessage("Invalid promo code.", "error"); return;
+                    }
+
+                    if (!currentBankUser.usedPromoCodes) currentBankUser.usedPromoCodes = [];
+                    if (currentBankUser.usedPromoCodes.includes(code)) {
+                        showPointsPageMessage("You have already used this promo code.", "info"); return;
+                    }
+
+                    currentBankUser.points = (currentBankUser.points || 0) + promo.points;
+                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                    currentBankUser.pointsHistory.push({
+                        id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0],
+                        description: `Promo Code: ${code} (${promo.message})`, points: promo.points, type: "earned"
+                    });
+                    currentBankUser.usedPromoCodes.push(code);
+                    saveUserAndUpdate(currentBankUser);
+                    showPointsPageMessage(`Promo code applied! You received ${promo.points} points.`, "success");
+                    promoCodeInputEl.value = '';
+                });
+            }
+
+
+            // --- Redeem Points Logic ---
             if (redeemPointsFormEl && mrcBankLoggedInUserEmail) {
                 redeemPointsFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
@@ -212,8 +381,8 @@
                     }
 
                     const pointsToRedeem = parseInt(document.getElementById('pointsToRedeem').value);
-                    const REDEMPTION_RATE_POINTS = 10; // 10 points
-                    const REDEMPTION_RATE_MRC = 1;    // = 1 MRC
+                    const REDEMPTION_RATE_POINTS = 10; 
+                    const REDEMPTION_RATE_MRC = 1;    
 
                     if (isNaN(pointsToRedeem) || pointsToRedeem <= 0 || pointsToRedeem % REDEMPTION_RATE_POINTS !== 0) {
                         showPointsPageMessage(`Please enter a valid number of points to redeem, in multiples of ${REDEMPTION_RATE_POINTS}.`, "error");
@@ -227,45 +396,31 @@
 
                     const mrcEarned = (pointsToRedeem / REDEMPTION_RATE_POINTS) * REDEMPTION_RATE_MRC;
 
-                    // Update user data
-                    let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    const userIndex = users.findIndex(user => user.email === mrcBankLoggedInUserEmail);
+                    currentBankUser.points -= pointsToRedeem;
+                    currentBankUser.balance += mrcEarned;
 
-                    if (userIndex !== -1) {
-                        users[userIndex].points -= pointsToRedeem;
-                        users[userIndex].balance += mrcEarned;
+                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                    currentBankUser.pointsHistory.push({
+                        id: crypto.randomUUID(),
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC`,
+                        points: -pointsToRedeem, 
+                        type: "redeemed"
+                    });
 
-                        if (!users[userIndex].pointsHistory) users[userIndex].pointsHistory = [];
-                        users[userIndex].pointsHistory.push({
-                            id: crypto.randomUUID(),
-                            date: new Date().toISOString().split('T')[0],
-                            description: `Redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC`,
-                            points: -pointsToRedeem, // Negative for redeemed
-                            type: "redeemed"
-                        });
-
-                        if (!users[userIndex].transactions) users[userIndex].transactions = [];
-                        users[userIndex].transactions.push({
-                            id: crypto.randomUUID(),
-                            date: new Date().toISOString().split('T')[0],
-                            description: `Points Redemption: ${pointsToRedeem} pts`,
-                            amount: mrcEarned,
-                            type: "deposit" // Considered a deposit to main balance
-                        });
-                        
-                        localStorage.setItem('mrcBankUsers', JSON.stringify(users));
-                        currentBankUser = users[userIndex]; // Update in-memory user data
-
-                        displayPointsBalance();
-                        renderPointsHistory();
-                        // Note: The main balance on this page is not displayed, but it's updated.
-                        // The user.html page will show the updated main balance on next load.
-                        
-                        showPointsPageMessage(`Successfully redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC!`, "success");
-                        redeemPointsFormEl.reset();
-                    } else {
-                        showPointsPageMessage("Error processing redemption. User not found.", "error");
-                    }
+                    if (!currentBankUser.transactions) currentBankUser.transactions = [];
+                    currentBankUser.transactions.push({
+                        id: crypto.randomUUID(),
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Points Redemption: ${pointsToRedeem} pts`,
+                        amount: mrcEarned,
+                        type: "deposit" 
+                    });
+                    
+                    saveUserAndUpdate(currentBankUser); // This will also update display
+                    
+                    showPointsPageMessage(`Successfully redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC! Your bank balance has been updated.`, "success");
+                    redeemPointsFormEl.reset();
                 });
             }
         });
