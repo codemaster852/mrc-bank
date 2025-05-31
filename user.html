@@ -6,7 +6,8 @@
     <title>My Account - MRC Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet"> <style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet"> 
+    <style>
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -16,12 +17,14 @@
         }
         .message-box.success { background-color: #28a745; }
         .message-box.error { background-color: #dc3545; }
+        .message-box.warning { background-color: #ffc107; color: #333 } /* Yellow for warning */
+
 
         .card-container {
-            perspective: 1000px; /* For 3D effect */
-            width: 350px; /* Adjust as needed */
-            height: 220px; /* Adjust as needed */
-            cursor: pointer;
+            perspective: 1000px; 
+            width: 350px; 
+            height: 220px; 
+            /* cursor: pointer; /* Remove cursor pointer if banned */
         }
         .bank-card-flipper {
             width: 100%;
@@ -37,7 +40,7 @@
             width: 100%;
             height: 100%;
             position: absolute;
-            backface-visibility: hidden; /* Hide the back of the panel during flip */
+            backface-visibility: hidden; 
             border-radius: 15px;
             padding: 20px;
             color: white;
@@ -45,9 +48,9 @@
             overflow: hidden;
         }
         .bank-card-front {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); /* Dark blue to lighter blue gradient */
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
         }
-        .bank-card-front::before { /* Subtle pattern for front */
+        .bank-card-front::before { 
             content: '';
             position: absolute;
             top: 0; left: 0;
@@ -57,13 +60,13 @@
             z-index: 0;
         }
         .bank-card-back {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); /* Slightly different gradient for back */
+            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); 
             transform: rotateY(180deg);
             display: flex;
             flex-direction: column;
-            justify-content: space-around; /* Distribute space for back elements */
+            justify-content: space-around; 
         }
-        .card-content { /* To ensure content is above pseudo-elements */
+        .card-content { 
             position: relative;
             z-index: 1;
         }
@@ -74,20 +77,20 @@
         .card-chip {
             width: 50px;
             height: 40px;
-            background: linear-gradient(135deg, #d4af37, #c0c0c0); /* Gold to silver */
+            background: linear-gradient(135deg, #d4af37, #c0c0c0); 
             border-radius: 5px;
         }
         .card-number {
-            font-family: 'Orbitron', sans-serif; /* Monospaced, futuristic font */
+            font-family: 'Orbitron', sans-serif; 
             font-size: 1.4rem;
             letter-spacing: 2px;
             margin-top: 20px;
         }
         .card-details-grid {
             display: grid;
-            grid-template-columns: 3fr 1fr; /* Card holder name takes more space */
-            gap: 10px; /* Gap between items */
-            align-items: end; /* Align items to the bottom of their grid area */
+            grid-template-columns: 3fr 1fr; 
+            gap: 10px; 
+            align-items: end; 
             margin-top: 15px;
         }
         .card-holder-name, .card-expiry {
@@ -96,21 +99,20 @@
         .card-holder-name span, .card-expiry span {
             display: block;
             font-size: 0.7rem;
-            color: #cbd5e1; /* Lighter text for labels */
+            color: #cbd5e1; 
             margin-bottom: 2px;
         }
-        /* Back of card styling */
         .magnetic-strip {
             height: 40px;
             background-color: #333;
             width: 100%;
-            margin-top: 20px; /* Pushes it down a bit from the top */
+            margin-top: 20px; 
         }
         .signature-panel {
             height: 40px;
             background-color: #e0e0e0;
             width: 80%;
-            margin: 15px auto 0 auto; /* Center it and provide some margin */
+            margin: 15px auto 0 auto; 
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -129,7 +131,25 @@
             padding: 0 10px;
         }
         .masked {
-            font-family: 'Orbitron', sans-serif; /* Ensure masked text uses same font */
+            font-family: 'Orbitron', sans-serif; 
+        }
+        .banned-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 0, 0, 0.1); /* Light red overlay */
+            z-index: 10; /* Above card content, below messages */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px; /* Match card radius */
+        }
+        .banned-text-overlay {
+            color: red;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-align: center;
+            transform: rotate(-15deg);
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -149,13 +169,20 @@
     <div id="userMessageBox" class="message-box"></div>
 
     <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
-        <div id="dashboardContent" class="hidden"> <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
+        <div id="dashboardContent" class="hidden"> 
+            <h1 id="welcomeMessage" class="text-4xl font-extrabold text-gray-800 mb-8 text-center md:text-left">My Account</h1>
+
+            <div id="bannedAccountWarning" class="hidden message-box error mb-6 !static !max-w-full text-center"> 
+                Your account has been banned. Functionality is limited. Please contact support.
+            </div>
+
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 flex flex-col items-center md:items-start">
                     <div class="card-container" id="cardContainer">
                         <div class="bank-card-flipper" id="bankCardFlipper">
                             <div class="bank-card-front">
+                                <div class="banned-overlay hidden"><span class="banned-text-overlay">BANNED</span></div>
                                 <div class="card-content">
                                     <div class="flex justify-between items-start">
                                         <div class="card-logo">MRC Bank</div>
@@ -175,6 +202,7 @@
                                 </div>
                             </div>
                             <div class="bank-card-back">
+                                 <div class="banned-overlay hidden"><span class="banned-text-overlay">BANNED</span></div>
                                 <div class="card-content">
                                     <div class="magnetic-strip"></div>
                                     <div class="signature-panel">
@@ -195,7 +223,8 @@
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
                         <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Send Money to Another User</h2>
-                        <div id="sendMoneyMessageBox" class="message-box mb-4"></div> <form id="sendMoneyToPersonForm" class="space-y-4">
+                        <div id="sendMoneyMessageBox" class="message-box mb-4"></div> 
+                        <form id="sendMoneyToPersonForm" class="space-y-4">
                             <div>
                                 <label for="recipientCardNumberPerson" class="block text-sm font-medium text-gray-700">Recipient's MRC Bank Card Number</label>
                                 <input type="text" id="recipientCardNumberPerson" name="recipientCardNumberPerson" required
@@ -214,7 +243,7 @@
                                        placeholder="e.g., For lunch, Birthday gift"
                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
-                            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                            <button type="submit" id="sendMoneySubmitButton" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
                                 Send Money
                             </button>
                         </form>
@@ -241,8 +270,6 @@
     </footer>
 
     <script>
-        // const SHARED_PAYMENTS_STORAGE_KEY = 'mrcShared_completedPayments'; // Retain if still needed for MRC Languages
-
         document.addEventListener('DOMContentLoaded', () => {
             const welcomeMessageEl = document.getElementById('welcomeMessage');
             const userGreetingNavEl = document.getElementById('userGreetingNav');
@@ -262,9 +289,11 @@
             const dashboardContentEl = document.getElementById('dashboardContent');
             const loadingStateEl = document.getElementById('loadingState');
 
-            // New elements for "Send Money to Person" form
             const sendMoneyToPersonFormEl = document.getElementById('sendMoneyToPersonForm');
             const sendMoneyMessageBoxEl = document.getElementById('sendMoneyMessageBox');
+            const sendMoneySubmitButtonEl = document.getElementById('sendMoneySubmitButton'); // Get reference to the button
+            const bannedAccountWarningEl = document.getElementById('bannedAccountWarning');
+            const bannedOverlayEls = document.querySelectorAll('.banned-overlay');
 
 
             let actualCardNumber = "";
@@ -310,20 +339,42 @@
                     updateBalanceDisplay();
                     renderTransactions();
 
+                    // Handle Banned Status
+                    if (currentUserData.isBanned === true) {
+                        handleBannedUserInterface();
+                    }
+
                 } else {
                     showUserMessage("Error loading your account data. Please try logging in again.", "error");
+                    sessionStorage.removeItem('mrcBankLoggedInUserEmail'); // Clear session if data is corrupt
+                    sessionStorage.removeItem('mrcBankLoggedInUserFullName');
                     setTimeout(() => { window.location.href = 'login.html'; }, 2500);
                 }
             }
+
+            function handleBannedUserInterface() {
+                if (bannedAccountWarningEl) bannedAccountWarningEl.style.display = 'block';
+                if (sendMoneySubmitButtonEl) sendMoneySubmitButtonEl.disabled = true;
+                if (toggleDetailsBtnEl) toggleDetailsBtnEl.disabled = true;
+                if (cardContainerEl) cardContainerEl.style.cursor = 'default'; // Remove pointer cursor
+                
+                // Disable form inputs in send money section
+                const formInputs = sendMoneyToPersonFormEl.querySelectorAll('input');
+                formInputs.forEach(input => input.disabled = true);
+
+                // Show banned overlay on card
+                bannedOverlayEls.forEach(overlay => overlay.classList.remove('hidden'));
+
+                showUserMessage("Your account is banned. Functionality is limited.", "warning", 6000, userMessageBoxEl);
+            }
             
-            function updateBalanceDisplay() {
+            function updateBalanceDisplay() { /* ... same as before ... */ 
                 if (!currentUserData) return;
                 const balance = currentUserData.balance !== undefined ? parseFloat(currentUserData.balance).toFixed(2) : "0.00";
                 if (userBalanceHeaderEl) userBalanceHeaderEl.textContent = `Balance: ${balance} MRC`;
             }
-
-            function renderTransactions() {
-                 if (transactionsListEl && currentUserData) {
+            function renderTransactions() { /* ... same as before ... */ 
+                if (transactionsListEl && currentUserData) {
                     transactionsListEl.innerHTML = ''; 
                     if (currentUserData.transactions && currentUserData.transactions.length > 0) {
                         currentUserData.transactions.slice().reverse().forEach(tx => {
@@ -345,9 +396,8 @@
                     }
                 }
             }
-
-            function updateCardDetailsVisibility() {
-                if (detailsVisible) {
+            function updateCardDetailsVisibility() { /* ... same as before ... */ 
+                 if (detailsVisible) {
                     cardNumberDisplayEl.textContent = actualCardNumber;
                     cardNumberDisplayEl.classList.remove('masked');
                     cardCvvDisplayBackEl.textContent = actualCvv;
@@ -365,6 +415,7 @@
 
             if (toggleDetailsBtnEl) {
                 toggleDetailsBtnEl.addEventListener('click', () => {
+                    if (currentUserData && currentUserData.isBanned === true) return; // Prevent action if banned
                     detailsVisible = !detailsVisible;
                     updateCardDetailsVisibility();
                 });
@@ -372,33 +423,31 @@
             
             if (cardContainerEl) {
                 cardContainerEl.addEventListener('click', () => {
+                    if (currentUserData && currentUserData.isBanned === true) return; // Prevent action if banned
                     bankCardFlipperEl.classList.toggle('is-flipped');
                 });
             }
 
-            // --- Send Money to Person Logic ---
             if (sendMoneyToPersonFormEl && loggedInUserEmail) {
                 sendMoneyToPersonFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    if (!currentUserData) {
-                        showUserMessage("User data not loaded. Cannot process payment.", "error", sendMoneyMessageBoxEl);
+                    if (!currentUserData || currentUserData.isBanned === true) { // Check ban status here too
+                        showUserMessage("Your account is banned. You cannot send money.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
 
                     const recipientCardNumber = document.getElementById('recipientCardNumberPerson').value.trim();
                     const amount = parseFloat(document.getElementById('sendAmountPerson').value);
-                    const reason = document.getElementById('sendReason').value.trim() || "Transfer"; // Default reason
+                    const reason = document.getElementById('sendReason').value.trim() || "Transfer";
 
                     if (!recipientCardNumber || !amount || amount <= 0) {
                         showUserMessage("Please enter a valid recipient card number and amount.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
-
                     if (recipientCardNumber === currentUserData.cardNumber) {
                         showUserMessage("You cannot send money to your own account.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
-
                     if (currentUserData.balance < amount) {
                         showUserMessage("Insufficient balance.", "error", sendMoneyMessageBoxEl);
                         return;
@@ -411,10 +460,12 @@
                         showUserMessage("Recipient card number not found.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
-                    
                     const recipientUser = users[recipientUserIndex];
-
-                    // Update sender's data (current user)
+                    if (recipientUser.isBanned === true) {
+                        showUserMessage("The recipient's account is banned. Cannot send money.", "error", sendMoneyMessageBoxEl);
+                        return;
+                    }
+                    
                     const senderUserIndex = users.findIndex(user => user.email === loggedInUserEmail);
                      if (senderUserIndex === -1) { 
                         showUserMessage("Error processing transaction. Please log in again.", "error", sendMoneyMessageBoxEl);
@@ -431,7 +482,6 @@
                         type: "payment"
                     });
 
-                    // Update recipient's data
                     users[recipientUserIndex].balance += amount;
                      if (!users[recipientUserIndex].transactions) users[recipientUserIndex].transactions = [];
                     users[recipientUserIndex].transactions.push({
@@ -444,7 +494,6 @@
 
                     localStorage.setItem('mrcBankUsers', JSON.stringify(users));
                     
-                    // Update current user's data in memory and UI
                     currentUserData = users[senderUserIndex];
                     updateBalanceDisplay();
                     renderTransactions();
@@ -453,7 +502,6 @@
                     sendMoneyToPersonFormEl.reset();
                 });
             }
-
 
             if (logoutButtonEl) {
                 logoutButtonEl.addEventListener('click', () => {
