@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My MRC Points - MRC Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .message-box {
+            padding: 0.75rem 1.25rem; margin-bottom: 1rem; border: 1px solid transparent;
+            border-radius: 0.375rem; display: none;
+        }
+        .message-box.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
+        .message-box.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
+        .points-highlight {
+            background: linear-gradient(135deg, #fef08a, #facc15); /* yellow-200 to yellow-400 */
+            color: #713f12; /* yellow-800 */
+        }
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
+            <div class="space-x-4 text-lg">
+                <a href="user.html" id="dashboardLinkPoints" class="text-gray-600 hover:text-blue-700 font-medium">My Account</a>
+                <span id="userGreetingPointsNav" class="text-gray-700 font-medium"></span>
+                <button id="logoutButtonPoints" class="hidden bg-red-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-red-600 transition duration-300 text-sm">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-10">
+        <div id="pointsPageContent" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-4xl font-extrabold text-gray-800">My MRC Points</h1>
+                <div class="points-highlight p-4 rounded-lg shadow-md text-center">
+                    <p class="text-sm font-medium">Your Points Balance</p>
+                    <p id="pointsBalanceDisplay" class="text-4xl font-bold">0</p>
+                </div>
+            </div>
+
+            <div id="pointsPageMessageBox" class="message-box"></div>
+
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Redeem Points</h2>
+                <p class="text-sm text-gray-600 mb-1">Redemption Rate: <strong class="text-green-600">10 Points = 1 MRC</strong>.</p>
+                <p class="text-sm text-gray-600 mb-4">You can redeem points in multiples of 10.</p>
+                <form id="redeemPointsForm" class="space-y-4 sm:flex sm:space-y-0 sm:space-x-4 items-end">
+                    <div class="flex-grow">
+                        <label for="pointsToRedeem" class="block text-sm font-medium text-gray-700">Points to Redeem</label>
+                        <input type="number" id="pointsToRedeem" name="pointsToRedeem" required min="10" step="10"
+                               placeholder="e.g., 100"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm">
+                    </div>
+                    <button type="submit" id="redeemPointsButton" class="w-full sm:w-auto flex justify-center py-2.5 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-150">
+                        Redeem
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Points History</h2>
+                <div id="pointsHistoryList" class="table-container overflow-x-auto max-h-[400px]">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="4" class="text-center p-4 text-gray-500">No points activity yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="pointsLoadingState" class="text-center py-20">
+            <p class="text-xl text-gray-600">Loading your points details...</p>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-8 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-400">&copy; <span id="currentYearPointsPage"></span> MRC Bank. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pointsBalanceDisplayEl = document.getElementById('pointsBalanceDisplay');
+            const pointsHistoryListEl = document.getElementById('pointsHistoryList').querySelector('tbody');
+            const redeemPointsFormEl = document.getElementById('redeemPointsForm');
+            const pointsPageMessageBoxEl = document.getElementById('pointsPageMessageBox');
+            const userGreetingPointsNavEl = document.getElementById('userGreetingPointsNav');
+            const logoutButtonPointsEl = document.getElementById('logoutButtonPoints');
+            const pointsPageContentEl = document.getElementById('pointsPageContent');
+            const pointsLoadingStateEl = document.getElementById('pointsLoadingState');
+            const redeemPointsButtonEl = document.getElementById('redeemPointsButton');
+
+
+            let currentBankUser = null; // To store the full user object
+
+            function showPointsPageMessage(message, type = "success", duration = 3000) {
+                if (!pointsPageMessageBoxEl) return;
+                pointsPageMessageBoxEl.textContent = message;
+                pointsPageMessageBoxEl.className = `message-box ${type}`;
+                pointsPageMessageBoxEl.style.display = 'block';
+                setTimeout(() => { pointsPageMessageBoxEl.style.display = 'none'; }, duration);
+            }
+
+            const mrcBankLoggedInUserEmail = sessionStorage.getItem('mrcBankLoggedInUserEmail');
+            const mrcBankLoggedInUserFullName = sessionStorage.getItem('mrcBankLoggedInUserFullName');
+
+            if (mrcBankLoggedInUserEmail && mrcBankLoggedInUserFullName) {
+                if (userGreetingPointsNavEl) userGreetingPointsNavEl.textContent = `Hi, ${mrcBankLoggedInUserFullName.split(' ')[0]}`;
+                if (logoutButtonPointsEl) logoutButtonPointsEl.classList.remove('hidden');
+                loadPointsUserData();
+            } else {
+                showPointsPageMessage("You are not logged in. Redirecting to login...", "error");
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+            }
+
+            if (logoutButtonPointsEl) {
+                logoutButtonPointsEl.addEventListener('click', () => {
+                    sessionStorage.removeItem('mrcBankLoggedInUserEmail');
+                    sessionStorage.removeItem('mrcBankLoggedInUserFullName');
+                    showPointsPageMessage("You have been logged out.", "success");
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                });
+            }
+
+            function loadPointsUserData() {
+                const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                currentBankUser = users.find(user => user.email === mrcBankLoggedInUserEmail);
+
+                if (currentBankUser) {
+                    pointsLoadingStateEl.style.display = 'none';
+                    pointsPageContentEl.classList.remove('hidden');
+                    
+                    displayPointsBalance();
+                    renderPointsHistory();
+
+                    if (currentBankUser.isBanned === true) {
+                        handleBannedPointsPage();
+                    }
+                } else {
+                    showPointsPageMessage("Error loading your account data. Please log in again.", "error");
+                     setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+                }
+            }
+            
+            function handleBannedPointsPage() {
+                if (redeemPointsButtonEl) redeemPointsButtonEl.disabled = true;
+                const formInputs = redeemPointsFormEl.querySelectorAll('input');
+                formInputs.forEach(input => input.disabled = true);
+                showPointsPageMessage("Your account is banned. Points management is disabled.", "error", 6000);
+            }
+
+
+            function displayPointsBalance() {
+                if (pointsBalanceDisplayEl && currentBankUser) {
+                    pointsBalanceDisplayEl.textContent = currentBankUser.points || 0;
+                }
+            }
+
+            function renderPointsHistory() {
+                if (!pointsHistoryListEl || !currentBankUser) return;
+                pointsHistoryListEl.innerHTML = ''; // Clear existing
+
+                if (currentBankUser.pointsHistory && currentBankUser.pointsHistory.length > 0) {
+                    currentBankUser.pointsHistory.slice().reverse().forEach(entry => {
+                        const row = pointsHistoryListEl.insertRow();
+                        row.insertCell().textContent = new Date(entry.date).toLocaleDateString();
+                        row.insertCell().textContent = entry.description;
+                        
+                        const pointsCell = row.insertCell();
+                        pointsCell.textContent = entry.points;
+                        pointsCell.className = `font-medium ${entry.type === 'earned' ? 'text-green-600' : 'text-red-600'}`;
+                        
+                        const typeCell = row.insertCell();
+                        typeCell.textContent = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
+                        typeCell.className = `${entry.type === 'earned' ? 'text-green-700' : 'text-red-700'}`;
+                    });
+                } else {
+                    const row = pointsHistoryListEl.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 4;
+                    cell.className = "text-center p-4 text-gray-500";
+                    cell.textContent = "No points activity yet.";
+                }
+            }
+
+            if (redeemPointsFormEl && mrcBankLoggedInUserEmail) {
+                redeemPointsFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (!currentBankUser || currentBankUser.isBanned === true) {
+                        showPointsPageMessage("Your account is banned. You cannot redeem points.", "error");
+                        return;
+                    }
+
+                    const pointsToRedeem = parseInt(document.getElementById('pointsToRedeem').value);
+                    const REDEMPTION_RATE_POINTS = 10; // 10 points
+                    const REDEMPTION_RATE_MRC = 1;    // = 1 MRC
+
+                    if (isNaN(pointsToRedeem) || pointsToRedeem <= 0 || pointsToRedeem % REDEMPTION_RATE_POINTS !== 0) {
+                        showPointsPageMessage(`Please enter a valid number of points to redeem, in multiples of ${REDEMPTION_RATE_POINTS}.`, "error");
+                        return;
+                    }
+
+                    if ((currentBankUser.points || 0) < pointsToRedeem) {
+                        showPointsPageMessage("You do not have enough points to redeem.", "error");
+                        return;
+                    }
+
+                    const mrcEarned = (pointsToRedeem / REDEMPTION_RATE_POINTS) * REDEMPTION_RATE_MRC;
+
+                    // Update user data
+                    let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                    const userIndex = users.findIndex(user => user.email === mrcBankLoggedInUserEmail);
+
+                    if (userIndex !== -1) {
+                        users[userIndex].points -= pointsToRedeem;
+                        users[userIndex].balance += mrcEarned;
+
+                        if (!users[userIndex].pointsHistory) users[userIndex].pointsHistory = [];
+                        users[userIndex].pointsHistory.push({
+                            id: crypto.randomUUID(),
+                            date: new Date().toISOString().split('T')[0],
+                            description: `Redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC`,
+                            points: -pointsToRedeem, // Negative for redeemed
+                            type: "redeemed"
+                        });
+
+                        if (!users[userIndex].transactions) users[userIndex].transactions = [];
+                        users[userIndex].transactions.push({
+                            id: crypto.randomUUID(),
+                            date: new Date().toISOString().split('T')[0],
+                            description: `Points Redemption: ${pointsToRedeem} pts`,
+                            amount: mrcEarned,
+                            type: "deposit" // Considered a deposit to main balance
+                        });
+                        
+                        localStorage.setItem('mrcBankUsers', JSON.stringify(users));
+                        currentBankUser = users[userIndex]; // Update in-memory user data
+
+                        displayPointsBalance();
+                        renderPointsHistory();
+                        // Note: The main balance on this page is not displayed, but it's updated.
+                        // The user.html page will show the updated main balance on next load.
+                        
+                        showPointsPageMessage(`Successfully redeemed ${pointsToRedeem} points for ${mrcEarned.toFixed(2)} MRC!`, "success");
+                        redeemPointsFormEl.reset();
+                    } else {
+                        showPointsPageMessage("Error processing redemption. User not found.", "error");
+                    }
+                });
+            }
+        });
+        document.getElementById('currentYearPointsPage').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
