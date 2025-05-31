@@ -17,14 +17,12 @@
         }
         .message-box.success { background-color: #28a745; }
         .message-box.error { background-color: #dc3545; }
-        .message-box.warning { background-color: #ffc107; color: #333 } /* Yellow for warning */
-
+        .message-box.warning { background-color: #ffc107; color: #333 } 
 
         .card-container {
             perspective: 1000px; 
             width: 350px; 
             height: 220px; 
-            /* cursor: pointer; /* Remove cursor pointer if banned */
         }
         .bank-card-flipper {
             width: 100%;
@@ -136,12 +134,12 @@
         .banned-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 0, 0, 0.1); /* Light red overlay */
-            z-index: 10; /* Above card content, below messages */
+            background-color: rgba(255, 0, 0, 0.1); 
+            z-index: 10; 
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 15px; /* Match card radius */
+            border-radius: 15px; 
         }
         .banned-text-overlay {
             color: red;
@@ -160,6 +158,7 @@
             <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
             <div class="flex items-center space-x-6 text-lg">
                 <span id="userBalanceHeader" class="font-semibold text-xl text-green-600">Balance: 0.00 MRC</span>
+                <span id="userPointsHeader" class="font-semibold text-xl text-yellow-500">Points: 0</span>
                 <span id="userGreetingNav" class="text-gray-700 font-medium"></span>
                 <button id="logoutButton" class="bg-red-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-600 transition duration-300">Logout</button>
             </div>
@@ -175,7 +174,6 @@
             <div id="bannedAccountWarning" class="hidden message-box error mb-6 !static !max-w-full text-center"> 
                 Your account has been banned. Functionality is limited. Please contact support.
             </div>
-
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 flex flex-col items-center md:items-start">
@@ -221,6 +219,17 @@
                 </div>
 
                 <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">MRC Points</h2>
+                        <div class="flex justify-between items-center mb-4">
+                            <p class="text-lg text-gray-700">Your current points: <strong id="currentPointsDisplay" class="text-yellow-600">0</strong></p>
+                            <a href="mrc-points-user.html" id="managePointsButton" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition duration-150">
+                                Manage Points
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-500">Earn points by sending money. Redeem points for MRC currency!</p>
+                    </div>
+
                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
                         <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Send Money to Another User</h2>
                         <div id="sendMoneyMessageBox" class="message-box mb-4"></div> 
@@ -285,13 +294,17 @@
             const toggleDetailsBtnEl = document.getElementById('toggleDetailsBtn');
 
             const userBalanceHeaderEl = document.getElementById('userBalanceHeader');
+            const userPointsHeaderEl = document.getElementById('userPointsHeader'); // For points in header
+            const currentPointsDisplayEl = document.getElementById('currentPointsDisplay'); // For points in dashboard section
+            const managePointsButtonEl = document.getElementById('managePointsButton');
+
             const transactionsListEl = document.getElementById('transactionsList');
             const dashboardContentEl = document.getElementById('dashboardContent');
             const loadingStateEl = document.getElementById('loadingState');
 
             const sendMoneyToPersonFormEl = document.getElementById('sendMoneyToPersonForm');
             const sendMoneyMessageBoxEl = document.getElementById('sendMoneyMessageBox');
-            const sendMoneySubmitButtonEl = document.getElementById('sendMoneySubmitButton'); // Get reference to the button
+            const sendMoneySubmitButtonEl = document.getElementById('sendMoneySubmitButton'); 
             const bannedAccountWarningEl = document.getElementById('bannedAccountWarning');
             const bannedOverlayEls = document.querySelectorAll('.banned-overlay');
 
@@ -337,42 +350,49 @@
                     
                     updateCardDetailsVisibility();
                     updateBalanceDisplay();
+                    updatePointsDisplay(); // New function call
                     renderTransactions();
 
-                    // Handle Banned Status
                     if (currentUserData.isBanned === true) {
                         handleBannedUserInterface();
                     }
 
                 } else {
                     showUserMessage("Error loading your account data. Please try logging in again.", "error");
-                    sessionStorage.removeItem('mrcBankLoggedInUserEmail'); // Clear session if data is corrupt
+                    sessionStorage.removeItem('mrcBankLoggedInUserEmail'); 
                     sessionStorage.removeItem('mrcBankLoggedInUserFullName');
                     setTimeout(() => { window.location.href = 'login.html'; }, 2500);
                 }
             }
 
-            function handleBannedUserInterface() {
+            function handleBannedUserInterface() { /* ... same as before ... */ 
                 if (bannedAccountWarningEl) bannedAccountWarningEl.style.display = 'block';
                 if (sendMoneySubmitButtonEl) sendMoneySubmitButtonEl.disabled = true;
                 if (toggleDetailsBtnEl) toggleDetailsBtnEl.disabled = true;
-                if (cardContainerEl) cardContainerEl.style.cursor = 'default'; // Remove pointer cursor
+                if (cardContainerEl) cardContainerEl.style.cursor = 'default'; 
+                if (managePointsButtonEl) managePointsButtonEl.classList.add('opacity-50', 'cursor-not-allowed'); // Disable points button too
                 
-                // Disable form inputs in send money section
                 const formInputs = sendMoneyToPersonFormEl.querySelectorAll('input');
                 formInputs.forEach(input => input.disabled = true);
 
-                // Show banned overlay on card
                 bannedOverlayEls.forEach(overlay => overlay.classList.remove('hidden'));
-
                 showUserMessage("Your account is banned. Functionality is limited.", "warning", 6000, userMessageBoxEl);
             }
             
-            function updateBalanceDisplay() { /* ... same as before ... */ 
+            function updateBalanceDisplay() { 
                 if (!currentUserData) return;
                 const balance = currentUserData.balance !== undefined ? parseFloat(currentUserData.balance).toFixed(2) : "0.00";
                 if (userBalanceHeaderEl) userBalanceHeaderEl.textContent = `Balance: ${balance} MRC`;
             }
+
+            function updatePointsDisplay() {
+                if (!currentUserData) return;
+                const points = currentUserData.points || 0;
+                if (userPointsHeaderEl) userPointsHeaderEl.textContent = `Points: ${points}`;
+                if (currentPointsDisplayEl) currentPointsDisplayEl.textContent = points;
+            }
+
+
             function renderTransactions() { /* ... same as before ... */ 
                 if (transactionsListEl && currentUserData) {
                     transactionsListEl.innerHTML = ''; 
@@ -415,7 +435,7 @@
 
             if (toggleDetailsBtnEl) {
                 toggleDetailsBtnEl.addEventListener('click', () => {
-                    if (currentUserData && currentUserData.isBanned === true) return; // Prevent action if banned
+                    if (currentUserData && currentUserData.isBanned === true) return; 
                     detailsVisible = !detailsVisible;
                     updateCardDetailsVisibility();
                 });
@@ -423,7 +443,7 @@
             
             if (cardContainerEl) {
                 cardContainerEl.addEventListener('click', () => {
-                    if (currentUserData && currentUserData.isBanned === true) return; // Prevent action if banned
+                    if (currentUserData && currentUserData.isBanned === true) return; 
                     bankCardFlipperEl.classList.toggle('is-flipped');
                 });
             }
@@ -431,7 +451,7 @@
             if (sendMoneyToPersonFormEl && loggedInUserEmail) {
                 sendMoneyToPersonFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    if (!currentUserData || currentUserData.isBanned === true) { // Check ban status here too
+                    if (!currentUserData || currentUserData.isBanned === true) { 
                         showUserMessage("Your account is banned. You cannot send money.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
@@ -472,6 +492,7 @@
                         return;
                     }
                     
+                    // Update sender's data
                     users[senderUserIndex].balance -= amount;
                     if (!users[senderUserIndex].transactions) users[senderUserIndex].transactions = [];
                     users[senderUserIndex].transactions.push({
@@ -482,6 +503,20 @@
                         type: "payment"
                     });
 
+                    // Award points to sender
+                    const pointsEarned = Math.max(1, Math.floor(amount / 10)); // 1 point per 10 MRC, min 1 point
+                    users[senderUserIndex].points = (users[senderUserIndex].points || 0) + pointsEarned;
+                    if (!users[senderUserIndex].pointsHistory) users[senderUserIndex].pointsHistory = [];
+                    users[senderUserIndex].pointsHistory.push({
+                        id: crypto.randomUUID(),
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Earned for sending ${amount.toFixed(2)} MRC`,
+                        points: pointsEarned,
+                        type: "earned"
+                    });
+
+
+                    // Update recipient's data
                     users[recipientUserIndex].balance += amount;
                      if (!users[recipientUserIndex].transactions) users[recipientUserIndex].transactions = [];
                     users[recipientUserIndex].transactions.push({
@@ -494,14 +529,26 @@
 
                     localStorage.setItem('mrcBankUsers', JSON.stringify(users));
                     
-                    currentUserData = users[senderUserIndex];
+                    currentUserData = users[senderUserIndex]; // Refresh current user data
                     updateBalanceDisplay();
+                    updatePointsDisplay(); // Refresh points display
                     renderTransactions();
                     
-                    showUserMessage(`Successfully sent ${amount.toFixed(2)} MRC to ${recipientUser.fullName}.`, "success", sendMoneyMessageBoxEl);
+                    showUserMessage(`Successfully sent ${amount.toFixed(2)} MRC to ${recipientUser.fullName}. You earned ${pointsEarned} points!`, "success", sendMoneyMessageBoxEl);
                     sendMoneyToPersonFormEl.reset();
                 });
             }
+            
+            if (managePointsButtonEl) {
+                 managePointsButtonEl.addEventListener('click', (e) => {
+                    if (currentUserData && currentUserData.isBanned === true) {
+                        e.preventDefault(); // Prevent navigation
+                        showUserMessage("Your account is banned. Points management is disabled.", "warning");
+                    }
+                    // else, let the link navigate to mrc-points-user.html
+                 });
+            }
+
 
             if (logoutButtonEl) {
                 logoutButtonEl.addEventListener('click', () => {
