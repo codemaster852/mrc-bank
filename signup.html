@@ -119,11 +119,11 @@
             signupMessage.textContent = message;
             signupMessage.className = `message-box ${type}`;
             signupMessage.style.display = 'block';
-            setTimeout(() => { signupMessage.style.display = 'none'; }, 3000);
+            setTimeout(() => { signupMessage.style.display = 'none'; }, 4000); // Increased duration
         }
 
         function generateCardNumber() {
-            let number = '5021'; // MRC Bank prefix
+            let number = '5021'; 
             for (let i = 0; i < 3; i++) {
                 number += '-' + Math.floor(1000 + Math.random() * 9000);
             }
@@ -156,27 +156,35 @@
             }
 
             let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-            if (users.find(user => user.email === email)) {
-                showMessage("This email is already registered.", "error"); return;
+            const existingUser = users.find(user => user.email === email);
+
+            if (existingUser) {
+                if (existingUser.isBanned === true) {
+                    showMessage("This email address is associated with a banned account and cannot be used to create a new account.", "error");
+                } else {
+                    showMessage("This email is already registered. Please login.", "error");
+                }
+                return;
             }
 
             const newUser = { 
                 fullName, 
                 email, 
-                password, // WARNING: Storing plain text passwords
+                password, 
                 cardNumber: generateCardNumber(),
                 cvv: generateCVV(),
-                expiryDate: "Forever", // As requested
-                balance: 100.00, // Initial balance
+                expiryDate: "Forever", 
+                balance: 100.00, 
                 transactions: [
                     {
-                        id: crypto.randomUUID(), // Unique ID for transaction
-                        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                        id: crypto.randomUUID(), 
+                        date: new Date().toISOString().split('T')[0], 
                         description: "Initial account deposit",
                         amount: 100.00,
-                        type: "deposit" // 'deposit' or 'payment'
+                        type: "deposit" 
                     }
-                ]
+                ],
+                isBanned: false // New users are not banned by default
             };
 
             users.push(newUser);
