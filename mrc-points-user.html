@@ -35,6 +35,23 @@
         }
         .task-card h3 { min-height: 2.25rem; /* Ensure title area has consistent height */ }
         .task-card p { min-height: 3rem; /* Ensure description area has consistent height */ }
+        
+        /* Modal Styles */
+        .modal { 
+            display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; 
+            overflow: auto; background-color: rgba(0,0,0,0.6);
+            align-items: center; justify-content: center; 
+        }
+        .modal-content { 
+            background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; 
+            width: 90%; max-width: 500px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close-button { 
+            color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+            line-height: 1; 
+        }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        .quiz-option label { margin-left: 0.5rem; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -82,8 +99,8 @@
                             <h3 class="text-lg font-semibold text-teal-700 mb-2">Learn & Earn</h3>
                             <p class="text-sm text-gray-600 mb-3">"Learn about MRC SecurePay" and earn 10 points (one-time).</p>
                         </div>
-                        <button id="completeTaskButton" class="mt-auto w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Mark as Completed
+                        <button id="learnSecurePayButton" class="mt-auto w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Learn & Claim
                         </button>
                     </div>
                     
@@ -165,8 +182,8 @@
                             <h3 class="text-lg font-semibold text-rose-700 mb-2">Submit Feedback</h3>
                             <p class="text-sm text-gray-600 mb-3">Help us improve and earn 10 points (one-time).</p>
                         </div>
-                        <button id="submitFeedbackButton" class="mt-auto w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Confirm Feedback Sent
+                        <button id="openFeedbackModalButton" class="mt-auto w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Provide Feedback
                         </button>
                     </div>
                     
@@ -183,10 +200,10 @@
                     <div class="task-card p-4 rounded-lg">
                         <div>
                             <h3 class="text-lg font-semibold text-sky-700 mb-2">Financial Tip Quiz</h3>
-                            <p class="text-sm text-gray-600 mb-3">What is "compounding"? (Answer: Interest on Interest). Earn 5 points (one-time).</p>
+                            <p class="text-sm text-gray-600 mb-3">Answer a quick question and earn 5 points (one-time).</p>
                         </div>
-                        <button id="quizAnswerButton" class="mt-auto w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Claim Quiz Bonus
+                        <button id="openQuizModalButton" class="mt-auto w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Take Quiz
                         </button>
                     </div>
                 </div>
@@ -234,6 +251,41 @@
         </div>
     </main>
 
+    <div id="learnSecurePayModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('learnSecurePayModal')">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">About MRC SecurePay</h3>
+            <p class="text-gray-700 mb-4">MRC SecurePay is our latest technology ensuring all your transactions are encrypted end-to-end, providing peace of mind for every payment you make within the MRC ecosystem. It uses multi-layer authentication and real-time fraud detection.</p>
+            <button id="confirmLearnedSecurePayButton" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm">I've Read This & Claim Points</button>
+        </div>
+    </div>
+
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('feedbackModal')">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Submit Your Feedback</h3>
+            <form id="feedbackForm">
+                <textarea id="feedbackTextarea" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-rose-500 focus:border-rose-500" placeholder="Tell us what you think... (min 10 characters)"></textarea>
+                <button type="submit" id="submitFeedbackAndClaimButton" class="mt-4 w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Feedback & Claim Points</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('quizModal')">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Financial Tip Quiz</h3>
+            <p class="text-gray-700 mb-3">What is "compounding" in finance?</p>
+            <form id="quizForm" class="space-y-2">
+                <div class="quiz-option"><input type="radio" name="quiz" value="a" id="q_a"> <label for="q_a">A type of secure password.</label></div>
+                <div class="quiz-option"><input type="radio" name="quiz" value="b" id="q_b"> <label for="q_b">Earning returns on your previous earnings (interest on interest).</label></div>
+                <div class="quiz-option"><input type="radio" name="quiz" value="c" id="q_c"> <label for="q_c">A way to split payments.</label></div>
+                <button type="submit" id="submitQuizButton" class="mt-4 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Answer & Claim Points</button>
+            </form>
+        </div>
+    </div>
+
+
     <footer class="bg-gray-900 text-white py-8 mt-auto">
         <div class="container mx-auto px-6 text-center">
             <p class="text-gray-400">&copy; <span id="currentYearPointsPage"></span> MRC Bank. All rights reserved.</p>
@@ -241,6 +293,16 @@
     </footer>
 
     <script>
+        // Globally scoped modal functions
+        function openModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'flex';
+        }
+        function closeModal(modalId) { 
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none'; 
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const pointsBalanceDisplayEl = document.getElementById('pointsBalanceDisplay');
             const pointsHistoryListEl = document.getElementById('pointsHistoryList').querySelector('tbody');
@@ -253,9 +315,9 @@
             const redeemPointsButtonEl = document.getElementById('redeemPointsButton');
             const bannedUserPointsWarningEl = document.getElementById('bannedUserPointsWarning');
 
-            // Existing earn points elements
             const claimDailyBonusButtonEl = document.getElementById('claimDailyBonusButton');
-            const completeTaskButtonEl = document.getElementById('completeTaskButton');
+            // Renamed completeTaskButton to learnSecurePayButton for clarity
+            const learnSecurePayButtonEl = document.getElementById('learnSecurePayButton'); 
             const promoCodeFormEl = document.getElementById('promoCodeForm');
             const promoCodeInputEl = document.getElementById('promoCodeInput');
             const applyPromoCodeButtonEl = document.getElementById('applyPromoCodeButton');
@@ -263,22 +325,27 @@
             const watchVideoButtonEl = document.getElementById('watchVideoButton');
             const videoAdsWatchedTodayDisplayEl = document.getElementById('videoAdsWatchedTodayDisplay');
 
-            // New 10 ways elements
             const completeProfileButtonEl = document.getElementById('completeProfileButton');
             const enable2FAButtonEl = document.getElementById('enable2FAButton');
             const subscribeNewsletterButtonEl = document.getElementById('subscribeNewsletterButton');
             const socialShareButtonEl = document.getElementById('socialShareButton');
-            const submitFeedbackButtonEl = document.getElementById('submitFeedbackButton');
+            const openFeedbackModalButtonEl = document.getElementById('openFeedbackModalButton');
             const weeklyCheckinButtonEl = document.getElementById('weeklyCheckinButton');
-            const quizAnswerButtonEl = document.getElementById('quizAnswerButton');
-            // For the last 3, I'll reuse some existing concepts or make them simple one-time claims
-            // "Explore New Feature" -> similar to "Learn & Earn"
-            // "Early Bird Bonus" -> similar to "Refer a Friend" (one-time claim)
-            // "Watch Tutorial Video" -> similar to "Learn & Earn"
+            const openQuizModalButtonEl = document.getElementById('openQuizModalButton');
+
+            // Modal specific elements
+            const learnSecurePayModalEl = document.getElementById('learnSecurePayModal');
+            const confirmLearnedSecurePayButtonEl = document.getElementById('confirmLearnedSecurePayButton');
+            const feedbackModalEl = document.getElementById('feedbackModal');
+            const feedbackFormEl = document.getElementById('feedbackForm');
+            const feedbackTextareaEl = document.getElementById('feedbackTextarea');
+            const quizModalEl = document.getElementById('quizModal');
+            const quizFormEl = document.getElementById('quizForm');
+
 
             let currentBankUser = null; 
             const DAILY_BONUS_POINTS = 5;
-            const TASK_SECUREPAY_POINTS = 10;
+            const TASK_SECUREPAY_POINTS = 10; // Renamed from completeTaskButtonEl
             const REFER_FRIEND_POINTS = 25;
             const WATCH_AD_POINTS = 2;
             const MAX_ADS_PER_DAY = 3;
@@ -289,6 +356,7 @@
             const SUBMIT_FEEDBACK_POINTS = 10;
             const WEEKLY_BONUS_POINTS = 10;
             const QUIZ_BONUS_POINTS = 5;
+            const CORRECT_QUIZ_ANSWER = "b";
 
 
             const PREDEFINED_PROMO_CODES = {
@@ -296,19 +364,25 @@
                 "MRCBOOST20": { points: 20, message: "Special boost!" }
             };
 
-            function showPointsPageMessage(message, type = "success", duration = 3000) {
-                if (!pointsPageMessageBoxEl) return;
+            function showPointsPageMessage(message, type = "success", duration = 3000) { /* ... same ... */ 
+                 if (!pointsPageMessageBoxEl) return;
                 pointsPageMessageBoxEl.textContent = message;
                 pointsPageMessageBoxEl.className = `message-box ${type}`;
                 pointsPageMessageBoxEl.style.display = 'block';
                 setTimeout(() => { pointsPageMessageBoxEl.style.display = 'none'; }, duration);
             }
 
+            window.onclick = function(event) { // Close modal if clicked outside content
+                if (event.target.classList.contains('modal')) {
+                    closeModal(event.target.id); // Assumes modal backdrop has the ID
+                }
+            }
+
             const mrcBankLoggedInUserEmail = sessionStorage.getItem('mrcBankLoggedInUserEmail');
             const mrcBankLoggedInUserFullName = sessionStorage.getItem('mrcBankLoggedInUserFullName');
 
-            if (mrcBankLoggedInUserEmail && mrcBankLoggedInUserFullName) {
-                if (userGreetingPointsNavEl) userGreetingPointsNavEl.textContent = `Hi, ${mrcBankLoggedInUserFullName.split(' ')[0]}`;
+            if (mrcBankLoggedInUserEmail && mrcBankLoggedInUserFullName) { /* ... same ... */ 
+                 if (userGreetingPointsNavEl) userGreetingPointsNavEl.textContent = `Hi, ${mrcBankLoggedInUserFullName.split(' ')[0]}`;
                 if (logoutButtonPointsEl) logoutButtonPointsEl.classList.remove('hidden');
                 loadPointsUserData();
             } else {
@@ -316,7 +390,7 @@
                 setTimeout(() => { window.location.href = 'login.html'; }, 2000);
             }
 
-            if (logoutButtonPointsEl) {
+            if (logoutButtonPointsEl) { /* ... same ... */ 
                 logoutButtonPointsEl.addEventListener('click', () => {
                     sessionStorage.removeItem('mrcBankLoggedInUserEmail');
                     sessionStorage.removeItem('mrcBankLoggedInUserFullName');
@@ -325,7 +399,7 @@
                 });
             }
 
-            function loadPointsUserData() {
+            function loadPointsUserData() { /* ... same ... */
                 const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
                 const userIndex = users.findIndex(user => user.email === mrcBankLoggedInUserEmail);
 
@@ -347,10 +421,10 @@
                 }
             }
             
-            function handleBannedPointsPage() {
+            function handleBannedPointsPage() { /* ... updated to include new buttons ... */
                 if (redeemPointsButtonEl) redeemPointsButtonEl.disabled = true;
                 if (claimDailyBonusButtonEl) claimDailyBonusButtonEl.disabled = true;
-                if (completeTaskButtonEl) completeTaskButtonEl.disabled = true;
+                if (learnSecurePayButtonEl) learnSecurePayButtonEl.disabled = true; // Updated ID
                 if (applyPromoCodeButtonEl) applyPromoCodeButtonEl.disabled = true;
                 if (promoCodeInputEl) promoCodeInputEl.disabled = true;
                 if (referFriendButtonEl) referFriendButtonEl.disabled = true;
@@ -359,9 +433,9 @@
                 if (enable2FAButtonEl) enable2FAButtonEl.disabled = true;
                 if (subscribeNewsletterButtonEl) subscribeNewsletterButtonEl.disabled = true;
                 if (socialShareButtonEl) socialShareButtonEl.disabled = true;
-                if (submitFeedbackButtonEl) submitFeedbackButtonEl.disabled = true;
+                if (openFeedbackModalButtonEl) openFeedbackModalButtonEl.disabled = true;
                 if (weeklyCheckinButtonEl) weeklyCheckinButtonEl.disabled = true;
-                if (quizAnswerButtonEl) quizAnswerButtonEl.disabled = true;
+                if (openQuizModalButtonEl) openQuizModalButtonEl.disabled = true;
 
                 const redeemFormInputs = redeemPointsFormEl.querySelectorAll('input');
                 redeemFormInputs.forEach(input => input.disabled = true);
@@ -369,26 +443,22 @@
                 if(bannedUserPointsWarningEl) bannedUserPointsWarningEl.style.display = 'block';
             }
 
-            function displayPointsBalance() {
-                if (pointsBalanceDisplayEl && currentBankUser) {
+            function displayPointsBalance() { /* ... same ... */ 
+                 if (pointsBalanceDisplayEl && currentBankUser) {
                     pointsBalanceDisplayEl.textContent = currentBankUser.points || 0;
                 }
             }
-
-            function renderPointsHistory() {
+            function renderPointsHistory() { /* ... same ... */ 
                 if (!pointsHistoryListEl || !currentBankUser) return;
                 pointsHistoryListEl.innerHTML = ''; 
-
                 if (currentBankUser.pointsHistory && currentBankUser.pointsHistory.length > 0) {
                     currentBankUser.pointsHistory.slice().reverse().forEach(entry => {
                         const row = pointsHistoryListEl.insertRow();
                         row.insertCell().textContent = new Date(entry.date).toLocaleDateString();
                         row.insertCell().textContent = entry.description;
-                        
                         const pointsCell = row.insertCell();
                         pointsCell.textContent = entry.points;
                         pointsCell.className = `font-medium ${entry.points > 0 ? 'text-green-600' : 'text-red-600'}`;
-                        
                         const typeCell = row.insertCell();
                         typeCell.textContent = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
                         typeCell.className = `${entry.points > 0 ? 'text-green-700' : 'text-red-700'}`;
@@ -402,7 +472,7 @@
                 }
             }
             
-            function saveUserAndUpdate(updatedUser) {
+            function saveUserAndUpdate(updatedUser) { /* ... same ... */ 
                 let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
                 const userIndex = users.findIndex(u => u.email === updatedUser.email);
                 if (userIndex !== -1) {
@@ -418,29 +488,22 @@
             }
 
             // --- Earn Points Logic ---
-            function updateEarnPointsUI() {
+            function updateEarnPointsUI() { /* ... updated for new tasks ... */ 
                 if (!currentBankUser) return;
                 const today = new Date().toISOString().split('T')[0];
 
-                // Daily Bonus
                 if (claimDailyBonusButtonEl) {
                     claimDailyBonusButtonEl.disabled = currentBankUser.lastDailyBonusClaimed === today;
                     claimDailyBonusButtonEl.textContent = currentBankUser.lastDailyBonusClaimed === today ? "Claimed Today" : `Claim ${DAILY_BONUS_POINTS} Points`;
                 }
-
-                // Task Completion (SecurePay)
-                if (completeTaskButtonEl) {
-                    completeTaskButtonEl.disabled = currentBankUser.taskSecurePayCompleted === true;
-                    completeTaskButtonEl.textContent = currentBankUser.taskSecurePayCompleted === true ? "Task Completed" : "Mark as Completed";
+                if (learnSecurePayButtonEl) { // Changed from completeTaskButtonEl
+                    learnSecurePayButtonEl.disabled = currentBankUser.taskSecurePayCompleted === true;
+                    learnSecurePayButtonEl.textContent = currentBankUser.taskSecurePayCompleted === true ? "Task Completed" : "Learn & Claim";
                 }
-                
-                // Refer a Friend
                 if (referFriendButtonEl) {
                     referFriendButtonEl.disabled = currentBankUser.referFriendBonusClaimed === true;
                     referFriendButtonEl.textContent = currentBankUser.referFriendBonusClaimed === true ? "Bonus Claimed" : "Claim Referral Bonus";
                 }
-
-                // Watch Video Ad
                 if (watchVideoButtonEl) {
                     const adsWatchedData = currentBankUser.videoAdsWatched || {};
                     const adsToday = adsWatchedData[today] || 0;
@@ -448,39 +511,31 @@
                     watchVideoButtonEl.disabled = adsToday >= MAX_ADS_PER_DAY;
                     watchVideoButtonEl.textContent = adsToday >= MAX_ADS_PER_DAY ? `Limit Reached (${MAX_ADS_PER_DAY}/day)` : `Watch Ad (${WATCH_AD_POINTS} Points)`;
                 }
-
-                // Complete Profile
                 if (completeProfileButtonEl) {
                     completeProfileButtonEl.disabled = currentBankUser.profileCompletedBonusClaimed === true;
                     completeProfileButtonEl.textContent = currentBankUser.profileCompletedBonusClaimed === true ? "Profile Bonus Claimed" : "Confirm Profile Completion";
                 }
-                // Enable 2FA
                 if (enable2FAButtonEl) {
                     enable2FAButtonEl.disabled = currentBankUser.twoFactorBonusClaimed === true;
                     enable2FAButtonEl.textContent = currentBankUser.twoFactorBonusClaimed === true ? "2FA Bonus Claimed" : "Confirm 2FA Enabled";
                 }
-                // Subscribe Newsletter
                 if (subscribeNewsletterButtonEl) {
                     subscribeNewsletterButtonEl.disabled = currentBankUser.newsletterBonusClaimed === true;
                     subscribeNewsletterButtonEl.textContent = currentBankUser.newsletterBonusClaimed === true ? "Subscribed & Claimed" : "Subscribe & Claim";
                 }
-                // Social Share
                 if (socialShareButtonEl) {
                     socialShareButtonEl.disabled = currentBankUser.socialShareBonusClaimed === true;
                     socialShareButtonEl.textContent = currentBankUser.socialShareBonusClaimed === true ? "Shared & Claimed" : "Confirm Share";
                 }
-                // Submit Feedback
-                if (submitFeedbackButtonEl) {
-                    submitFeedbackButtonEl.disabled = currentBankUser.feedbackBonusClaimed === true;
-                    submitFeedbackButtonEl.textContent = currentBankUser.feedbackBonusClaimed === true ? "Feedback Bonus Claimed" : "Confirm Feedback Sent";
+                if (openFeedbackModalButtonEl) {
+                    openFeedbackModalButtonEl.disabled = currentBankUser.feedbackBonusClaimed === true;
+                    openFeedbackModalButtonEl.textContent = currentBankUser.feedbackBonusClaimed === true ? "Feedback Bonus Claimed" : "Provide Feedback";
                 }
-                // Weekly Check-in
                 if (weeklyCheckinButtonEl) {
                     const lastClaimedWeek = currentBankUser.lastWeeklyBonusClaimedDate ? getWeekNumber(new Date(currentBankUser.lastWeeklyBonusClaimedDate)) : -1;
                     const currentWeek = getWeekNumber(new Date());
                     const currentYear = new Date().getFullYear();
                     const lastClaimedYear = currentBankUser.lastWeeklyBonusClaimedDate ? new Date(currentBankUser.lastWeeklyBonusClaimedDate).getFullYear() : -1;
-
                     if (lastClaimedWeek === currentWeek && lastClaimedYear === currentYear) {
                         weeklyCheckinButtonEl.disabled = true;
                         weeklyCheckinButtonEl.textContent = "Claimed This Week";
@@ -489,15 +544,13 @@
                         weeklyCheckinButtonEl.textContent = "Claim Weekly Bonus";
                     }
                 }
-                // Quiz
-                if (quizAnswerButtonEl) {
-                    quizAnswerButtonEl.disabled = currentBankUser.quizBonusClaimed === true;
-                    quizAnswerButtonEl.textContent = currentBankUser.quizBonusClaimed === true ? "Quiz Bonus Claimed" : "Claim Quiz Bonus";
+                if (openQuizModalButtonEl) { // Changed from quizAnswerButtonEl
+                    openQuizModalButtonEl.disabled = currentBankUser.quizBonusClaimed === true;
+                    openQuizModalButtonEl.textContent = currentBankUser.quizBonusClaimed === true ? "Quiz Bonus Claimed" : "Take Quiz";
                 }
             }
             
-            // Helper to get week number
-            function getWeekNumber(d) {
+            function getWeekNumber(d) { /* ... same ... */ 
                 d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
                 d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
                 var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
@@ -505,42 +558,43 @@
                 return weekNo;
             }
 
-
-            if (claimDailyBonusButtonEl) { /* ... same as before ... */ 
-                 claimDailyBonusButtonEl.addEventListener('click', () => {
+            // Event Listeners for existing earn methods
+            if (claimDailyBonusButtonEl) { /* ... same ... */ 
+                claimDailyBonusButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date().toISOString().split('T')[0];
                     if (currentBankUser.lastDailyBonusClaimed !== today) {
                         currentBankUser.points = (currentBankUser.points || 0) + DAILY_BONUS_POINTS;
                         if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({
-                            id: crypto.randomUUID(), date: today,
-                            description: "Daily Login Bonus", points: DAILY_BONUS_POINTS, type: "earned"
-                        });
+                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: today, description: "Daily Login Bonus", points: DAILY_BONUS_POINTS, type: "earned"});
                         currentBankUser.lastDailyBonusClaimed = today;
                         saveUserAndUpdate(currentBankUser);
                         showPointsPageMessage(`You claimed ${DAILY_BONUS_POINTS} points!`, "success");
-                    } else {
-                        showPointsPageMessage("Daily bonus already claimed today.", "info");
-                    }
+                    } else { showPointsPageMessage("Daily bonus already claimed today.", "info"); }
                 });
             }
-            if (completeTaskButtonEl) { /* ... same as before ... */ 
-                completeTaskButtonEl.addEventListener('click', () => {
+            // MODIFIED: Learn SecurePay (was completeTaskButton)
+            if (learnSecurePayButtonEl) { 
+                learnSecurePayButtonEl.addEventListener('click', () => {
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.taskSecurePayCompleted) return;
+                    openModal('learnSecurePayModal');
+                });
+            }
+            if (confirmLearnedSecurePayButtonEl) {
+                confirmLearnedSecurePayButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.taskSecurePayCompleted) return;
                     currentBankUser.points = (currentBankUser.points || 0) + TASK_SECUREPAY_POINTS;
                     if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({
-                        id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0],
-                        description: "Completed 'Learn about MRC SecurePay'", points: TASK_SECUREPAY_POINTS, type: "earned"
-                    });
+                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Completed 'Learn about MRC SecurePay'", points: TASK_SECUREPAY_POINTS, type: "earned"});
                     currentBankUser.taskSecurePayCompleted = true;
                     saveUserAndUpdate(currentBankUser);
+                    closeModal('learnSecurePayModal');
                     showPointsPageMessage(`Task completed! You earned ${TASK_SECUREPAY_POINTS} points.`, "success");
                 });
             }
-            if (promoCodeFormEl) { /* ... same as before ... */ 
-                promoCodeFormEl.addEventListener('submit', (e) => {
+
+            if (promoCodeFormEl) { /* ... same ... */ 
+                 promoCodeFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const code = promoCodeInputEl.value.toUpperCase().trim();
@@ -553,55 +607,43 @@
                     }
                     currentBankUser.points = (currentBankUser.points || 0) + promo.points;
                     if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({
-                        id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0],
-                        description: `Promo Code: ${code} (${promo.message})`, points: promo.points, type: "earned"
-                    });
+                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: `Promo Code: ${code} (${promo.message})`, points: promo.points, type: "earned"});
                     currentBankUser.usedPromoCodes.push(code);
                     saveUserAndUpdate(currentBankUser);
                     showPointsPageMessage(`Promo code applied! You received ${promo.points} points.`, "success");
                     promoCodeInputEl.value = '';
                 });
             }
-             if (referFriendButtonEl) {
+            if (referFriendButtonEl) { /* ... same ... */ 
                 referFriendButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.referFriendBonusClaimed) return;
                     currentBankUser.points = (currentBankUser.points || 0) + REFER_FRIEND_POINTS;
                     if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({
-                        id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0],
-                        description: "Refer a Friend Bonus", points: REFER_FRIEND_POINTS, type: "earned"
-                    });
+                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Refer a Friend Bonus", points: REFER_FRIEND_POINTS, type: "earned"});
                     currentBankUser.referFriendBonusClaimed = true;
                     saveUserAndUpdate(currentBankUser);
                     showPointsPageMessage(`Referral bonus of ${REFER_FRIEND_POINTS} points claimed!`, "success");
                 });
             }
-            if (watchVideoButtonEl) {
-                watchVideoButtonEl.addEventListener('click', () => {
+            if (watchVideoButtonEl) { /* ... same ... */ 
+                 watchVideoButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date().toISOString().split('T')[0];
                     if (!currentBankUser.videoAdsWatched) currentBankUser.videoAdsWatched = {};
                     const adsToday = currentBankUser.videoAdsWatched[today] || 0;
-
                     if (adsToday < MAX_ADS_PER_DAY) {
                         currentBankUser.points = (currentBankUser.points || 0) + WATCH_AD_POINTS;
                         if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({
-                            id: crypto.randomUUID(), date: today,
-                            description: "Watched Video Ad", points: WATCH_AD_POINTS, type: "earned"
-                        });
+                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: today, description: "Watched Video Ad", points: WATCH_AD_POINTS, type: "earned"});
                         currentBankUser.videoAdsWatched[today] = adsToday + 1;
                         saveUserAndUpdate(currentBankUser);
                         showPointsPageMessage(`You earned ${WATCH_AD_POINTS} points for watching an ad!`, "success");
-                    } else {
-                        showPointsPageMessage("You have reached the daily limit for watching video ads.", "info");
-                    }
+                    } else { showPointsPageMessage("You have reached the daily limit for watching video ads.", "info"); }
                 });
             }
 
             // Event listeners for new 10 ways
-            if (completeProfileButtonEl) {
+            if (completeProfileButtonEl) { /* ... same ... */ 
                 completeProfileButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.profileCompletedBonusClaimed) return;
                     currentBankUser.points = (currentBankUser.points || 0) + COMPLETE_PROFILE_POINTS;
@@ -612,7 +654,7 @@
                     showPointsPageMessage(`Profile bonus of ${COMPLETE_PROFILE_POINTS} points claimed!`, "success");
                 });
             }
-            if (enable2FAButtonEl) {
+            if (enable2FAButtonEl) { /* ... same ... */ 
                 enable2FAButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.twoFactorBonusClaimed) return;
                     currentBankUser.points = (currentBankUser.points || 0) + ENABLE_2FA_POINTS;
@@ -623,7 +665,7 @@
                     showPointsPageMessage(`2FA bonus of ${ENABLE_2FA_POINTS} points claimed!`, "success");
                 });
             }
-            if (subscribeNewsletterButtonEl) {
+            if (subscribeNewsletterButtonEl) { /* ... same ... */ 
                 subscribeNewsletterButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.newsletterBonusClaimed) return;
                     currentBankUser.points = (currentBankUser.points || 0) + SUBSCRIBE_NEWSLETTER_POINTS;
@@ -634,7 +676,7 @@
                     showPointsPageMessage(`Newsletter bonus of ${SUBSCRIBE_NEWSLETTER_POINTS} points claimed!`, "success");
                 });
             }
-            if (socialShareButtonEl) {
+            if (socialShareButtonEl) { /* ... same ... */ 
                 socialShareButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.socialShareBonusClaimed) return;
                     currentBankUser.points = (currentBankUser.points || 0) + SOCIAL_SHARE_POINTS;
@@ -645,18 +687,36 @@
                     showPointsPageMessage(`Social share bonus of ${SOCIAL_SHARE_POINTS} points claimed!`, "success");
                 });
             }
-            if (submitFeedbackButtonEl) {
-                submitFeedbackButtonEl.addEventListener('click', () => {
+            // MODIFIED: Submit Feedback (open modal)
+            if (openFeedbackModalButtonEl) {
+                openFeedbackModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.feedbackBonusClaimed) return;
+                    openModal('feedbackModal');
+                });
+            }
+            if (feedbackFormEl) {
+                feedbackFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.feedbackBonusClaimed) return;
+                    const feedbackText = feedbackTextareaEl.value.trim();
+                    if (feedbackText.length < 10) {
+                        showPointsPageMessage("Please provide at least 10 characters of feedback.", "error");
+                        return;
+                    }
+                    // Simulate sending feedback
+                    console.log("Feedback submitted:", feedbackText); 
                     currentBankUser.points = (currentBankUser.points || 0) + SUBMIT_FEEDBACK_POINTS;
                     if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
                     currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Feedback Submission Bonus", points: SUBMIT_FEEDBACK_POINTS, type: "earned"});
                     currentBankUser.feedbackBonusClaimed = true;
                     saveUserAndUpdate(currentBankUser);
+                    closeModal('feedbackModal');
+                    feedbackTextareaEl.value = '';
                     showPointsPageMessage(`Feedback bonus of ${SUBMIT_FEEDBACK_POINTS} points claimed!`, "success");
                 });
             }
-            if (weeklyCheckinButtonEl) {
+
+            if (weeklyCheckinButtonEl) { /* ... same ... */ 
                 weeklyCheckinButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date();
@@ -668,21 +728,41 @@
                         currentBankUser.lastWeeklyBonusClaimed = currentWeekYear;
                         saveUserAndUpdate(currentBankUser);
                         showPointsPageMessage(`Weekly bonus of ${WEEKLY_BONUS_POINTS} points claimed!`, "success");
-                    } else {
-                        showPointsPageMessage("Weekly bonus already claimed this week.", "info");
-                    }
+                    } else { showPointsPageMessage("Weekly bonus already claimed this week.", "info"); }
                 });
             }
-            if (quizAnswerButtonEl) {
-                quizAnswerButtonEl.addEventListener('click', () => {
+            // MODIFIED: Quiz (open modal)
+            if (openQuizModalButtonEl) { 
+                openQuizModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.quizBonusClaimed) return;
-                    // Simulate correct answer
-                    currentBankUser.points = (currentBankUser.points || 0) + QUIZ_BONUS_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Financial Tip Quiz Bonus", points: QUIZ_BONUS_POINTS, type: "earned"});
-                    currentBankUser.quizBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Quiz bonus of ${QUIZ_BONUS_POINTS} points claimed!`, "success");
+                    openModal('quizModal');
+                });
+            }
+            if (quizFormEl) {
+                quizFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.quizBonusClaimed) return;
+                    const selectedAnswer = quizFormEl.querySelector('input[name="quiz"]:checked');
+                    if (!selectedAnswer) {
+                        showPointsPageMessage("Please select an answer for the quiz.", "error");
+                        return;
+                    }
+                    if (selectedAnswer.value === CORRECT_QUIZ_ANSWER) {
+                        currentBankUser.points = (currentBankUser.points || 0) + QUIZ_BONUS_POINTS;
+                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Financial Tip Quiz Bonus (Correct)", points: QUIZ_BONUS_POINTS, type: "earned"});
+                        currentBankUser.quizBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        showPointsPageMessage(`Correct! Quiz bonus of ${QUIZ_BONUS_POINTS} points claimed!`, "success");
+                    } else {
+                        showPointsPageMessage("Incorrect answer. Try again next time!", "error");
+                        // Optionally, still mark as claimed to prevent re-attempts on wrong answer, or allow retries.
+                        // For simplicity here, we'll mark it claimed even if wrong to make it one-time.
+                        currentBankUser.quizBonusClaimed = true; 
+                        saveUserAndUpdate(currentBankUser); // Save the claimed status
+                    }
+                    closeModal('quizModal');
+                    quizFormEl.reset();
                 });
             }
 
