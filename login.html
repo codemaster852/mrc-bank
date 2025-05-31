@@ -107,7 +107,6 @@
     </footer>
 
     <script>
-        // Placeholder for login logic (using localStorage for demo)
         const loginForm = document.getElementById('loginForm');
         const loginMessage = document.getElementById('loginMessage');
 
@@ -116,7 +115,7 @@
             loginMessage.textContent = message;
             loginMessage.className = `message-box ${type}`;
             loginMessage.style.display = 'block';
-             setTimeout(() => { loginMessage.style.display = 'none'; }, 3000);
+             setTimeout(() => { loginMessage.style.display = 'none'; }, 4000); // Increased duration
         }
         
         loginForm.addEventListener('submit', (e) => {
@@ -130,13 +129,21 @@
             }
 
             const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-            const user = users.find(u => u.email === email && u.password === password);
+            const user = users.find(u => u.email === email);
 
             if (user) {
-                sessionStorage.setItem('mrcBankLoggedInUserEmail', user.email);
-                sessionStorage.setItem('mrcBankLoggedInUserFullName', user.fullName);
-                showMessage("Login successful! Redirecting...", "success");
-                setTimeout(() => { window.location.href = 'user.html'; }, 1500); // UPDATED REDIRECT
+                if (user.isBanned === true) { // Check if banned
+                    showMessage("Your account has been banned. Please contact support.", "error");
+                    return;
+                }
+                if (user.password === password) { // Check password
+                    sessionStorage.setItem('mrcBankLoggedInUserEmail', user.email);
+                    sessionStorage.setItem('mrcBankLoggedInUserFullName', user.fullName);
+                    showMessage("Login successful! Redirecting...", "success");
+                    setTimeout(() => { window.location.href = 'user.html'; }, 1500);
+                } else {
+                    showMessage("Invalid email or password.", "error");
+                }
             } else {
                 showMessage("Invalid email or password.", "error");
             }
