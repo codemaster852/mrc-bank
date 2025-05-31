@@ -119,7 +119,7 @@
             signupMessage.textContent = message;
             signupMessage.className = `message-box ${type}`;
             signupMessage.style.display = 'block';
-            setTimeout(() => { signupMessage.style.display = 'none'; }, 4000); // Increased duration
+            setTimeout(() => { signupMessage.style.display = 'none'; }, 4000); 
         }
 
         function generateCardNumber() {
@@ -184,7 +184,9 @@
                         type: "deposit" 
                     }
                 ],
-                isBanned: false // New users are not banned by default
+                isBanned: false,
+                points: 0, // Initialize points
+                pointsHistory: [] // Initialize points history
             };
 
             users.push(newUser);
