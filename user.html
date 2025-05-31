@@ -194,22 +194,28 @@
 
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Pay for MRC Service</h2>
-                        <div id="servicePaymentMessageBoxDashboard" class="message-box mb-4"></div> <form id="servicePaymentFormDashboard" class="space-y-4">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Send Money to Another User</h2>
+                        <div id="sendMoneyMessageBox" class="message-box mb-4"></div> <form id="sendMoneyToPersonForm" class="space-y-4">
                             <div>
-                                <label for="paymentReferenceIdDashboard" class="block text-sm font-medium text-gray-700">Payment Reference ID</label>
-                                <input type="text" id="paymentReferenceIdDashboard" name="paymentReferenceIdDashboard" required
-                                       placeholder="e.g., MRCL-COURSE-123XYZ"
+                                <label for="recipientCardNumberPerson" class="block text-sm font-medium text-gray-700">Recipient's MRC Bank Card Number</label>
+                                <input type="text" id="recipientCardNumberPerson" name="recipientCardNumberPerson" required
+                                       placeholder="5021-XXXX-XXXX-XXXX"
                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
                             <div>
-                                <label for="paymentAmountDashboard" class="block text-sm font-medium text-gray-700">Amount (MRC)</label>
-                                <input type="number" id="paymentAmountDashboard" name="paymentAmountDashboard" required min="0.01" step="0.01"
-                                       placeholder="e.g., 25.50"
+                                <label for="sendAmountPerson" class="block text-sm font-medium text-gray-700">Amount (MRC)</label>
+                                <input type="number" id="sendAmountPerson" name="sendAmountPerson" required min="0.01" step="0.01"
+                                       placeholder="0.00"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="sendReason" class="block text-sm font-medium text-gray-700">Reason (Optional)</label>
+                                <input type="text" id="sendReason" name="sendReason"
+                                       placeholder="e.g., For lunch, Birthday gift"
                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
                             <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-                                Confirm and Pay Service
+                                Send Money
                             </button>
                         </form>
                     </div>
@@ -235,13 +241,13 @@
     </footer>
 
     <script>
-        const SHARED_PAYMENTS_STORAGE_KEY = 'mrcShared_completedPayments'; // For communication with MRC Languages
+        // const SHARED_PAYMENTS_STORAGE_KEY = 'mrcShared_completedPayments'; // Retain if still needed for MRC Languages
 
         document.addEventListener('DOMContentLoaded', () => {
             const welcomeMessageEl = document.getElementById('welcomeMessage');
             const userGreetingNavEl = document.getElementById('userGreetingNav');
             const logoutButtonEl = document.getElementById('logoutButton');
-            const userMessageBoxEl = document.getElementById('userMessageBox'); // General page messages
+            const userMessageBoxEl = document.getElementById('userMessageBox'); 
             
             const cardContainerEl = document.getElementById('cardContainer');
             const bankCardFlipperEl = document.getElementById('bankCardFlipper');
@@ -256,9 +262,9 @@
             const dashboardContentEl = document.getElementById('dashboardContent');
             const loadingStateEl = document.getElementById('loadingState');
 
-            // New elements for "Pay for MRC Service" form
-            const servicePaymentFormDashboardEl = document.getElementById('servicePaymentFormDashboard');
-            const servicePaymentMessageBoxDashboardEl = document.getElementById('servicePaymentMessageBoxDashboard');
+            // New elements for "Send Money to Person" form
+            const sendMoneyToPersonFormEl = document.getElementById('sendMoneyToPersonForm');
+            const sendMoneyMessageBoxEl = document.getElementById('sendMoneyMessageBox');
 
 
             let actualCardNumber = "";
@@ -370,69 +376,81 @@
                 });
             }
 
-            // --- Pay for MRC Service Logic (Integrated into Dashboard) ---
-            if (servicePaymentFormDashboardEl && loggedInUserEmail) {
-                servicePaymentFormDashboardEl.addEventListener('submit', (e) => {
+            // --- Send Money to Person Logic ---
+            if (sendMoneyToPersonFormEl && loggedInUserEmail) {
+                sendMoneyToPersonFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentUserData) {
-                        showUserMessage("User data not loaded. Cannot process payment.", "error", servicePaymentMessageBoxDashboardEl);
+                        showUserMessage("User data not loaded. Cannot process payment.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
 
-                    const paymentId = document.getElementById('paymentReferenceIdDashboard').value.trim();
-                    const amount = parseFloat(document.getElementById('paymentAmountDashboard').value);
+                    const recipientCardNumber = document.getElementById('recipientCardNumberPerson').value.trim();
+                    const amount = parseFloat(document.getElementById('sendAmountPerson').value);
+                    const reason = document.getElementById('sendReason').value.trim() || "Transfer"; // Default reason
 
-                    if (!paymentId || !amount || amount <= 0) {
-                        showUserMessage("Please enter a valid Payment ID and amount.", "error", servicePaymentMessageBoxDashboardEl);
+                    if (!recipientCardNumber || !amount || amount <= 0) {
+                        showUserMessage("Please enter a valid recipient card number and amount.", "error", sendMoneyMessageBoxEl);
+                        return;
+                    }
+
+                    if (recipientCardNumber === currentUserData.cardNumber) {
+                        showUserMessage("You cannot send money to your own account.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
 
                     if (currentUserData.balance < amount) {
-                        showUserMessage(`Insufficient balance. Your current balance is ${currentUserData.balance.toFixed(2)} MRC.`, "error", servicePaymentMessageBoxDashboardEl);
+                        showUserMessage("Insufficient balance.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
 
-                    let mrcBankUsers = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
-                    const currentUserIndexInStorage = mrcBankUsers.findIndex(user => user.email === loggedInUserEmail);
+                    let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                    const recipientUserIndex = users.findIndex(user => user.cardNumber === recipientCardNumber);
 
-                    if (currentUserIndexInStorage === -1) { // Should ideally not happen if currentUserData is loaded
-                        showUserMessage("Critical error: Your account data could not be found for update.", "error", servicePaymentMessageBoxDashboardEl);
+                    if (recipientUserIndex === -1) {
+                        showUserMessage("Recipient card number not found.", "error", sendMoneyMessageBoxEl);
                         return;
                     }
+                    
+                    const recipientUser = users[recipientUserIndex];
 
-                    // Update balance and transaction for the current (MRC Bank) user
-                    mrcBankUsers[currentUserIndexInStorage].balance -= amount;
-                    if (!mrcBankUsers[currentUserIndexInStorage].transactions) {
-                        mrcBankUsers[currentUserIndexInStorage].transactions = [];
+                    // Update sender's data (current user)
+                    const senderUserIndex = users.findIndex(user => user.email === loggedInUserEmail);
+                     if (senderUserIndex === -1) { 
+                        showUserMessage("Error processing transaction. Please log in again.", "error", sendMoneyMessageBoxEl);
+                        return;
                     }
-                    mrcBankUsers[currentUserIndexInStorage].transactions.push({
+                    
+                    users[senderUserIndex].balance -= amount;
+                    if (!users[senderUserIndex].transactions) users[senderUserIndex].transactions = [];
+                    users[senderUserIndex].transactions.push({
                         id: crypto.randomUUID(),
                         date: new Date().toISOString().split('T')[0],
-                        description: `Payment for MRC Service ID: ${paymentId}`,
+                        description: `Sent to ${recipientUser.fullName} (Card ...${recipientCardNumber.slice(-4)}). Reason: ${reason}`,
                         amount: amount,
                         type: "payment"
                     });
-                    
-                    localStorage.setItem('mrcBankUsers', JSON.stringify(mrcBankUsers));
 
-                    // Update current user data in memory for immediate UI refresh
-                    currentUserData = mrcBankUsers[currentUserIndexInStorage];
+                    // Update recipient's data
+                    users[recipientUserIndex].balance += amount;
+                     if (!users[recipientUserIndex].transactions) users[recipientUserIndex].transactions = [];
+                    users[recipientUserIndex].transactions.push({
+                        id: crypto.randomUUID(),
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Received from ${currentUserData.fullName}. Reason: ${reason}`,
+                        amount: amount,
+                        type: "deposit"
+                    });
+
+                    localStorage.setItem('mrcBankUsers', JSON.stringify(users));
+                    
+                    // Update current user's data in memory and UI
+                    currentUserData = users[senderUserIndex];
                     updateBalanceDisplay();
                     renderTransactions();
-
-                    // Record the payment in the shared log for MRC Languages to pick up
-                    let sharedPayments = JSON.parse(localStorage.getItem(SHARED_PAYMENTS_STORAGE_KEY)) || [];
-                    sharedPayments.push({
-                        paymentId: paymentId,
-                        amountPaid: amount,
-                        paidByBankUserEmail: loggedInUserEmail,
-                        status: "completed",
-                        timestamp: new Date().toISOString()
-                    });
-                    localStorage.setItem(SHARED_PAYMENTS_STORAGE_KEY, JSON.stringify(sharedPayments));
-
-                    showUserMessage(`Payment of ${amount.toFixed(2)} MRC for ID ${paymentId} successful! MRC Languages will verify this payment.`, "success", servicePaymentMessageBoxDashboardEl, 5000);
-                    servicePaymentFormDashboardEl.reset();
+                    
+                    showUserMessage(`Successfully sent ${amount.toFixed(2)} MRC to ${recipientUser.fullName}.`, "success", sendMoneyMessageBoxEl);
+                    sendMoneyToPersonFormEl.reset();
                 });
             }
 
