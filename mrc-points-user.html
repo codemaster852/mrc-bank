@@ -18,33 +18,32 @@
         .message-box.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
         .message-box.info { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
         .points-highlight {
-            background: linear-gradient(135deg, #fef08a, #facc15); /* yellow-200 to yellow-400 */
-            color: #713f12; /* yellow-800 */
+            background: linear-gradient(135deg, #fef08a, #facc15); 
+            color: #713f12; 
         }
         .table-container::-webkit-scrollbar { width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #555; }
         .task-card {
-            background-color: #f9fafb; /* gray-50 */
-            border: 1px solid #e5e7eb; /* gray-200 */
+            background-color: #f9fafb; 
+            border: 1px solid #e5e7eb; 
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Pushes button to bottom */
-            min-height: 180px; /* Ensure cards have a consistent minimum height */
+            justify-content: space-between; 
+            min-height: 200px; /* Ensure cards have a consistent minimum height */
         }
-        .task-card h3 { min-height: 2.25rem; /* Ensure title area has consistent height */ }
-        .task-card p { min-height: 3rem; /* Ensure description area has consistent height */ }
+        .task-card h3 { min-height: 2.25rem; }
+        .task-card p { min-height: 3rem; font-size: 0.875rem; } /* Smaller text for descriptions */
         
-        /* Modal Styles */
         .modal { 
             display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; 
             overflow: auto; background-color: rgba(0,0,0,0.6);
-            align-items: center; justify-content: center; 
+            align-items: center; justify-content: center; padding: 1rem;
         }
         .modal-content { 
             background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; 
-            width: 90%; max-width: 500px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%; max-width: 550px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         .close-button { 
             color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
@@ -52,6 +51,7 @@
         }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
         .quiz-option label { margin-left: 0.5rem; }
+        .share-link { display: block; margin-bottom: 0.5rem; color: #2563eb; text-decoration: underline; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -80,135 +80,83 @@
             <div id="pointsPageMessageBox" class="message-box"></div>
             <div id="bannedUserPointsWarning" class="message-box error hidden !static !max-w-full text-center mb-6">Your account is banned. Points earning and redemption are disabled.</div>
 
-
             <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mb-8">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Earn More Points</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-blue-700 mb-2">Daily Login Bonus</h3>
-                            <p class="text-sm text-gray-600 mb-3">Claim 5 points every day you visit!</p>
-                        </div>
-                        <button id="claimDailyBonusButton" class="mt-auto w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Claim 5 Points
-                        </button>
+                        <div><h3 class="text-lg font-semibold text-blue-700 mb-2">Daily Login Bonus</h3><p class="text-gray-600 mb-3">Claim 5 points every day you visit!</p></div>
+                        <button id="claimDailyBonusButton" class="mt-auto w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Claim 5 Points</button>
                     </div>
-
                     <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-teal-700 mb-2">Learn & Earn</h3>
-                            <p class="text-sm text-gray-600 mb-3">"Learn about MRC SecurePay" and earn 10 points (one-time).</p>
-                        </div>
-                        <button id="learnSecurePayButton" class="mt-auto w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Learn & Claim
-                        </button>
+                        <div><h3 class="text-lg font-semibold text-teal-700 mb-2">Learn & Earn</h3><p class="text-gray-600 mb-3">"Learn about MRC SecurePay" and earn 10 points (one-time).</p></div>
+                        <button id="learnSecurePayButton" class="mt-auto w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Learn & Claim</button>
                     </div>
-                    
                     <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-purple-700 mb-2">Enter Promo Code</h3>
-                        </div>
+                        <div><h3 class="text-lg font-semibold text-purple-700 mb-2">Enter Promo Code</h3></div>
                         <form id="promoCodeForm" class="space-y-3 mt-auto">
                             <input type="text" id="promoCodeInput" placeholder="Enter code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <button type="submit" id="applyPromoCodeButton" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                                Apply Code
-                            </button>
+                            <button type="submit" id="applyPromoCodeButton" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Apply Code</button>
                         </form>
                     </div>
-
                      <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-orange-700 mb-2">Refer a Friend</h3>
-                            <p class="text-sm text-gray-600 mb-3">Get 25 points for "referring" a friend (one-time simulated bonus).</p>
-                        </div>
-                        <button id="referFriendButton" class="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Claim Referral Bonus
-                        </button>
+                        <div><h3 class="text-lg font-semibold text-orange-700 mb-2">Refer a Friend</h3><p class="text-gray-600 mb-3">Get 25 points for "referring" a friend (one-time bonus).</p></div>
+                        <button id="openReferFriendModalButton" class="mt-auto w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Refer & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-cyan-700 mb-2">Watch Video Ad</h3><p class="text-gray-600 mb-1">Earn 2 points for "watching" a short ad.</p><p class="text-xs text-gray-500 mb-3">Limit: <span id="videoAdsWatchedTodayDisplay">0</span>/3 per day.</p></div>
+                        <button id="watchVideoButton" class="mt-auto w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Watch Ad (2 Pts)</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-lime-700 mb-2">Complete Your Profile</h3><p class="text-gray-600 mb-3">Earn 15 points for "completing" your profile (one-time).</p></div>
+                        <button id="openCompleteProfileModalButton" class="mt-auto w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Complete Profile & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-emerald-700 mb-2">Enable 2FA</h3><p class="text-gray-600 mb-3">Secure your account and earn 20 points (one-time).</p></div>
+                        <button id="openEnable2FAModalButton" class="mt-auto w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Enable 2FA & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-indigo-700 mb-2">Subscribe to Newsletter</h3><p class="text-gray-600 mb-3">Stay updated and earn 5 points (one-time).</p></div>
+                        <button id="openSubscribeModalButton" class="mt-auto w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Subscribe & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-pink-700 mb-2">Share on Social Media</h3><p class="text-gray-600 mb-3">Spread the word and get 10 points (one-time).</p></div>
+                        <button id="openSocialShareModalButton" class="mt-auto w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Share & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-rose-700 mb-2">Submit Feedback</h3><p class="text-gray-600 mb-3">Help us improve and earn 10 points (one-time).</p></div>
+                        <button id="openFeedbackModalButton" class="mt-auto w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Provide Feedback</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-fuchsia-700 mb-2">Weekly Check-in</h3><p class="text-gray-600 mb-3">Claim 10 points for checking in this week!</p></div>
+                        <button id="weeklyCheckinButton" class="mt-auto w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Claim Weekly Bonus</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-sky-700 mb-2">Financial Tip Quiz</h3><p class="text-gray-600 mb-3">Answer a quick question and earn 5 points (one-time).</p></div>
+                        <button id="openQuizModalButton" class="mt-auto w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Take Quiz</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-red-700 mb-2">Visit FAQ Page</h3><p class="text-gray-600 mb-3">Find answers and earn 5 points (one-time).</p></div>
+                        <button id="visitFAQButton" class="mt-auto w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Visit FAQ & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-amber-700 mb-2">Simulate Statement Download</h3><p class="text-gray-600 mb-3">"Download" your statement, earn 3 points (one-time).</p></div>
+                        <button id="downloadStatementButton" class="mt-auto w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Download & Claim</button>
+                    </div>
+                     <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-green-700 mb-2">Watch Budgeting Video</h3><p class="text-gray-600 mb-3">Learn budgeting tips and earn 8 points (one-time).</p></div>
+                        <button id="watchBudgetingVideoButton" class="mt-auto w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Watch Video & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-slate-700 mb-2">"Update" Contact Info</h3><p class="text-gray-600 mb-3">Simulate updating your contact info for 7 points (one-time).</p></div>
+                        <button id="openUpdateContactModalButton" class="mt-auto w-full bg-slate-500 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Update Info & Claim</button>
+                    </div>
+                    <div class="task-card p-4 rounded-lg">
+                        <div><h3 class="text-lg font-semibold text-gray-700 mb-2">Read Scam Alert Article</h3><p class="text-gray-600 mb-3">Stay safe and earn 6 points (one-time).</p></div>
+                        <button id="readScamArticleButton" class="mt-auto w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed">Read Article & Claim</button>
                     </div>
 
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-cyan-700 mb-2">Watch Video Ad</h3>
-                            <p class="text-sm text-gray-600 mb-1">Earn 2 points for "watching" a short ad.</p>
-                            <p class="text-xs text-gray-500 mb-3">Limit: <span id="videoAdsWatchedTodayDisplay">0</span>/3 per day.</p>
-                        </div>
-                        <button id="watchVideoButton" class="mt-auto w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Watch Ad (2 Points)
-                        </button>
-                    </div>
-                    
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-lime-700 mb-2">Complete Your Profile</h3>
-                            <p class="text-sm text-gray-600 mb-3">Earn 15 points for "completing" your profile information (one-time).</p>
-                        </div>
-                        <button id="completeProfileButton" class="mt-auto w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Confirm Profile Completion
-                        </button>
-                    </div>
-
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-emerald-700 mb-2">Enable 2FA</h3>
-                            <p class="text-sm text-gray-600 mb-3">Secure your account and earn 20 points (one-time).</p>
-                        </div>
-                        <button id="enable2FAButton" class="mt-auto w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Confirm 2FA Enabled
-                        </button>
-                    </div>
-
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-indigo-700 mb-2">Subscribe to Newsletter</h3>
-                            <p class="text-sm text-gray-600 mb-3">Stay updated and earn 5 points (one-time).</p>
-                        </div>
-                        <button id="subscribeNewsletterButton" class="mt-auto w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Subscribe & Claim
-                        </button>
-                    </div>
-                    
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-pink-700 mb-2">Share on Social Media</h3>
-                            <p class="text-sm text-gray-600 mb-3">Spread the word and get 10 points (one-time).</p>
-                        </div>
-                        <button id="socialShareButton" class="mt-auto w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Confirm Share
-                        </button>
-                    </div>
-
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-rose-700 mb-2">Submit Feedback</h3>
-                            <p class="text-sm text-gray-600 mb-3">Help us improve and earn 10 points (one-time).</p>
-                        </div>
-                        <button id="openFeedbackModalButton" class="mt-auto w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Provide Feedback
-                        </button>
-                    </div>
-                    
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-fuchsia-700 mb-2">Weekly Check-in</h3>
-                            <p class="text-sm text-gray-600 mb-3">Claim 10 points for checking in this week!</p>
-                        </div>
-                        <button id="weeklyCheckinButton" class="mt-auto w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Claim Weekly Bonus
-                        </button>
-                    </div>
-
-                    <div class="task-card p-4 rounded-lg">
-                        <div>
-                            <h3 class="text-lg font-semibold text-sky-700 mb-2">Financial Tip Quiz</h3>
-                            <p class="text-sm text-gray-600 mb-3">Answer a quick question and earn 5 points (one-time).</p>
-                        </div>
-                        <button id="openQuizModalButton" class="mt-auto w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Take Quiz
-                        </button>
-                    </div>
                 </div>
             </div>
-
 
             <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl mb-8">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Redeem Points</h2>
@@ -226,7 +174,6 @@
                     </button>
                 </form>
             </div>
-
             <div class="bg-white p-6 sm:p-8 rounded-xl shadow-xl">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Points History</h2>
                 <div id="pointsHistoryList" class="table-container overflow-x-auto max-h-[400px]">
@@ -251,41 +198,19 @@
         </div>
     </main>
 
-    <div id="learnSecurePayModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('learnSecurePayModal')">&times;</span>
-            <h3 class="text-xl font-semibold mb-4">About MRC SecurePay</h3>
-            <p class="text-gray-700 mb-4">MRC SecurePay is our latest technology ensuring all your transactions are encrypted end-to-end, providing peace of mind for every payment you make within the MRC ecosystem. It uses multi-layer authentication and real-time fraud detection.</p>
-            <button id="confirmLearnedSecurePayButton" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm">I've Read This & Claim Points</button>
-        </div>
-    </div>
-
-    <div id="feedbackModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('feedbackModal')">&times;</span>
-            <h3 class="text-xl font-semibold mb-4">Submit Your Feedback</h3>
-            <form id="feedbackForm">
-                <textarea id="feedbackTextarea" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-rose-500 focus:border-rose-500" placeholder="Tell us what you think... (min 10 characters)"></textarea>
-                <button type="submit" id="submitFeedbackAndClaimButton" class="mt-4 w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Feedback & Claim Points</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="quizModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('quizModal')">&times;</span>
-            <h3 class="text-xl font-semibold mb-4">Financial Tip Quiz</h3>
-            <p class="text-gray-700 mb-3">What is "compounding" in finance?</p>
-            <form id="quizForm" class="space-y-2">
-                <div class="quiz-option"><input type="radio" name="quiz" value="a" id="q_a"> <label for="q_a">A type of secure password.</label></div>
-                <div class="quiz-option"><input type="radio" name="quiz" value="b" id="q_b"> <label for="q_b">Earning returns on your previous earnings (interest on interest).</label></div>
-                <div class="quiz-option"><input type="radio" name="quiz" value="c" id="q_c"> <label for="q_c">A way to split payments.</label></div>
-                <button type="submit" id="submitQuizButton" class="mt-4 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Answer & Claim Points</button>
-            </form>
-        </div>
-    </div>
-
-
+    <div id="learnSecurePayModal" class="modal"> <div class="modal-content"><span class="close-button" onclick="closeModal('learnSecurePayModal')">&times;</span><h3 class="text-xl font-semibold mb-4">About MRC SecurePay</h3><p class="text-gray-700 mb-4 text-sm">MRC SecurePay is our latest technology ensuring all your transactions are encrypted end-to-end, providing peace of mind for every payment... It uses multi-layer authentication and real-time fraud detection. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><button id="confirmLearnedSecurePayButton" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md text-sm">I've Read This & Claim Points</button></div></div>
+    <div id="feedbackModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('feedbackModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Submit Your Feedback</h3><form id="feedbackForm"><textarea id="feedbackTextarea" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-rose-500 focus:border-rose-500 text-sm" placeholder="Tell us what you think... (min 10 characters)"></textarea><button type="submit" id="submitFeedbackAndClaimButton" class="mt-4 w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Feedback & Claim Points</button></form></div></div>
+    <div id="quizModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('quizModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Financial Tip Quiz</h3><p class="text-gray-700 mb-3 text-sm">What is "compounding" in finance?</p><form id="quizForm" class="space-y-2 text-sm"><div class="quiz-option"><input type="radio" name="quiz" value="a" id="q_a"> <label for="q_a">A type of secure password.</label></div><div class="quiz-option"><input type="radio" name="quiz" value="b" id="q_b"> <label for="q_b">Earning returns on your previous earnings (interest on interest).</label></div><div class="quiz-option"><input type="radio" name="quiz" value="c" id="q_c"> <label for="q_c">A way to split payments.</label></div><button type="submit" id="submitQuizButton" class="mt-4 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Submit Answer & Claim</button></form></div></div>
+    <div id="referFriendModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('referFriendModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Refer a Friend</h3><p class="text-gray-700 mb-3 text-sm">Enter your friend's email to send them a referral (simulated).</p><form id="referFriendForm" class="space-y-3"><input type="email" id="friendEmailInput" placeholder="Friend's email" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"><button type="submit" id="sendReferralButton" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Send Referral & Claim Points</button></form></div></div>
+    <div id="completeProfileModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('completeProfileModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Complete Your Profile</h3><p class="text-gray-700 mb-4 text-sm">Thank you for keeping your profile up-to-date! This helps us serve you better. (Simulated completion).</p><button id="confirmProfileCompletionButton" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Okay, Claim Points</button></div></div>
+    <div id="enable2FAModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('enable2FAModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Enable Two-Factor Authentication</h3><p class="text-gray-700 mb-4 text-sm">Two-Factor Authentication (2FA) adds an extra layer of security to your account. We'll assume you've gone through the steps to enable it. (Simulated).</p><button id="confirm2FAEnabledButton" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Okay, 2FA Active & Claim Points</button></div></div>
+    <div id="subscribeModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('subscribeModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Subscribe to Newsletter</h3><p class="text-gray-700 mb-3 text-sm">Your email (<span id="subscribeEmailDisplay" class="font-medium">your-email@example.com</span>) will be added to our mailing list for exciting updates and offers. (Simulated).</p><button id="confirmSubscribeButton" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Subscribe & Claim Points</button></div></div>
+    <div id="socialShareModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('socialShareModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Share MRC Bank</h3><p class="text-gray-700 mb-3 text-sm">Spread the word about MRC Bank! Click a link below to share (simulated - opens new tab), then confirm.</p><div class="my-3 space-y-2"><a href="https://wa.me/?text=Check%20out%20MRC%20Bank!" target="_blank" class="share-link">Share on WhatsApp</a><a href="https://www.facebook.com/sharer/sharer.php?u=https://mrc-bank.vercel.app/" target="_blank" class="share-link">Share on Facebook</a></div><button id="confirmSocialShareButton" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded-md text-sm">I've Shared & Claim Points</button></div></div>
+    <div id="visitFAQModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('visitFAQModal')">&times;</span><h3 class="text-xl font-semibold mb-4">MRC Bank FAQ</h3><p class="text-gray-700 mb-1 text-sm"><strong>Q: How secure is MRC Bank?</strong><br>A: We use state-of-the-art security measures...</p><p class="text-gray-700 mb-4 text-sm"><strong>Q: How do I earn points?</strong><br>A: By performing various actions like sending money, daily logins, and completing tasks like this one!</p><button id="confirmFAQReadButton" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Mark as Read & Claim</button></div></div>
+    <div id="watchBudgetingVideoModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('watchBudgetingVideoModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Budgeting Basics Video</h3><p class="text-gray-700 mb-4 text-sm">[Placeholder for a short budgeting video description or embedded player] Tip: Always track your expenses!</p><button id="confirmBudgetingVideoWatchedButton" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Watched & Claim</button></div></div>
+    <div id="updateContactModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('updateContactModal')">&times;</span><h3 class="text-xl font-semibold mb-4">"Update" Contact Information</h3><form id="updateContactForm"><div class="mb-2"><label for="simPhone" class="text-sm">Phone (simulated):</label><input type="tel" id="simPhone" class="w-full p-1 border rounded-md text-sm" value="555-0100"></div><div class="mb-4"><label for="simAddress" class="text-sm">Address (simulated):</label><input type="text" id="simAddress" class="w-full p-1 border rounded-md text-sm" value="123 Main St"></div><button type="submit" id="confirmContactUpdate" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-md text-sm">"Save" & Claim</button></form></div></div>
+    <div id="readScamArticleModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('readScamArticleModal')">&times;</span><h3 class="text-xl font-semibold mb-4">Phishing Scam Awareness</h3><p class="text-gray-700 mb-4 text-sm">Always be wary of emails or messages asking for your login credentials. MRC Bank will never ask for your password via email. Look for HTTPS and official domain names. Report suspicious activity immediately.</p><button id="confirmScamArticleReadButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md text-sm">Read & Claim</button></div></div>
+    
     <footer class="bg-gray-900 text-white py-8 mt-auto">
         <div class="container mx-auto px-6 text-center">
             <p class="text-gray-400">&copy; <span id="currentYearPointsPage"></span> MRC Bank. All rights reserved.</p>
@@ -294,11 +219,11 @@
 
     <script>
         // Globally scoped modal functions
-        function openModal(modalId) { 
+        function openModal(modalId) { /* ... same ... */ 
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'flex';
         }
-        function closeModal(modalId) { 
+        function closeModal(modalId) { /* ... same ... */ 
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none'; 
         }
@@ -315,25 +240,32 @@
             const redeemPointsButtonEl = document.getElementById('redeemPointsButton');
             const bannedUserPointsWarningEl = document.getElementById('bannedUserPointsWarning');
 
+            // Existing earn points elements
             const claimDailyBonusButtonEl = document.getElementById('claimDailyBonusButton');
-            // Renamed completeTaskButton to learnSecurePayButton for clarity
             const learnSecurePayButtonEl = document.getElementById('learnSecurePayButton'); 
             const promoCodeFormEl = document.getElementById('promoCodeForm');
             const promoCodeInputEl = document.getElementById('promoCodeInput');
             const applyPromoCodeButtonEl = document.getElementById('applyPromoCodeButton');
-            const referFriendButtonEl = document.getElementById('referFriendButton');
+            const openReferFriendModalButtonEl = document.getElementById('openReferFriendModalButton'); // Changed from referFriendButtonEl
             const watchVideoButtonEl = document.getElementById('watchVideoButton');
             const videoAdsWatchedTodayDisplayEl = document.getElementById('videoAdsWatchedTodayDisplay');
-
-            const completeProfileButtonEl = document.getElementById('completeProfileButton');
-            const enable2FAButtonEl = document.getElementById('enable2FAButton');
-            const subscribeNewsletterButtonEl = document.getElementById('subscribeNewsletterButton');
-            const socialShareButtonEl = document.getElementById('socialShareButton');
+            const openCompleteProfileModalButtonEl = document.getElementById('openCompleteProfileModalButton'); // Changed from completeProfileButtonEl
+            const openEnable2FAModalButtonEl = document.getElementById('openEnable2FAModalButton'); // Changed from enable2FAButtonEl
+            const openSubscribeModalButtonEl = document.getElementById('openSubscribeModalButton'); // Changed
+            const openSocialShareModalButtonEl = document.getElementById('openSocialShareModalButton'); // Changed
             const openFeedbackModalButtonEl = document.getElementById('openFeedbackModalButton');
             const weeklyCheckinButtonEl = document.getElementById('weeklyCheckinButton');
             const openQuizModalButtonEl = document.getElementById('openQuizModalButton');
 
-            // Modal specific elements
+            // New 5 tasks buttons
+            const visitFAQButtonEl = document.getElementById('visitFAQButton');
+            const downloadStatementButtonEl = document.getElementById('downloadStatementButton');
+            const watchBudgetingVideoButtonEl = document.getElementById('watchBudgetingVideoButton');
+            const openUpdateContactModalButtonEl = document.getElementById('openUpdateContactModalButton');
+            const readScamArticleButtonEl = document.getElementById('readScamArticleButton');
+
+
+            // Modal specific elements (existing and new)
             const learnSecurePayModalEl = document.getElementById('learnSecurePayModal');
             const confirmLearnedSecurePayButtonEl = document.getElementById('confirmLearnedSecurePayButton');
             const feedbackModalEl = document.getElementById('feedbackModal');
@@ -341,11 +273,33 @@
             const feedbackTextareaEl = document.getElementById('feedbackTextarea');
             const quizModalEl = document.getElementById('quizModal');
             const quizFormEl = document.getElementById('quizForm');
+            const referFriendModalEl = document.getElementById('referFriendModal');
+            const referFriendFormEl = document.getElementById('referFriendForm');
+            const completeProfileModalEl = document.getElementById('completeProfileModal');
+            const confirmProfileCompletionButtonEl = document.getElementById('confirmProfileCompletionButton');
+            const enable2FAModalEl = document.getElementById('enable2FAModal');
+            const confirm2FAEnabledButtonEl = document.getElementById('confirm2FAEnabledButton');
+            const subscribeModalEl = document.getElementById('subscribeModal');
+            const confirmSubscribeButtonEl = document.getElementById('confirmSubscribeButton');
+            const subscribeEmailDisplayEl = document.getElementById('subscribeEmailDisplay');
+            const socialShareModalEl = document.getElementById('socialShareModal');
+            const confirmSocialShareButtonEl = document.getElementById('confirmSocialShareButton');
+            // New modals
+            const visitFAQModalEl = document.getElementById('visitFAQModal');
+            const confirmFAQReadButtonEl = document.getElementById('confirmFAQReadButton');
+            const watchBudgetingVideoModalEl = document.getElementById('watchBudgetingVideoModal');
+            const confirmBudgetingVideoWatchedButtonEl = document.getElementById('confirmBudgetingVideoWatchedButton');
+            const updateContactModalEl = document.getElementById('updateContactModal');
+            const updateContactFormEl = document.getElementById('updateContactForm'); // Corrected to form
+            const confirmContactUpdateEl = document.getElementById('confirmContactUpdate');
+            const readScamArticleModalEl = document.getElementById('readScamArticleModal');
+            const confirmScamArticleReadButtonEl = document.getElementById('confirmScamArticleReadButton');
+
 
 
             let currentBankUser = null; 
             const DAILY_BONUS_POINTS = 5;
-            const TASK_SECUREPAY_POINTS = 10; // Renamed from completeTaskButtonEl
+            const TASK_SECUREPAY_POINTS = 10; 
             const REFER_FRIEND_POINTS = 25;
             const WATCH_AD_POINTS = 2;
             const MAX_ADS_PER_DAY = 3;
@@ -356,25 +310,30 @@
             const SUBMIT_FEEDBACK_POINTS = 10;
             const WEEKLY_BONUS_POINTS = 10;
             const QUIZ_BONUS_POINTS = 5;
+            const FAQ_VISIT_POINTS = 5;
+            const STATEMENT_DOWNLOAD_POINTS = 3;
+            const BUDGETING_VIDEO_POINTS = 8;
+            const UPDATE_CONTACT_POINTS = 7;
+            const SCAM_ARTICLE_POINTS = 6;
             const CORRECT_QUIZ_ANSWER = "b";
 
 
-            const PREDEFINED_PROMO_CODES = {
+            const PREDEFINED_PROMO_CODES = { /* ... same ... */ 
                 "WELCOME10": { points: 10, message: "Welcome bonus!" },
                 "MRCBOOST20": { points: 20, message: "Special boost!" }
             };
 
             function showPointsPageMessage(message, type = "success", duration = 3000) { /* ... same ... */ 
-                 if (!pointsPageMessageBoxEl) return;
+                if (!pointsPageMessageBoxEl) return;
                 pointsPageMessageBoxEl.textContent = message;
                 pointsPageMessageBoxEl.className = `message-box ${type}`;
                 pointsPageMessageBoxEl.style.display = 'block';
                 setTimeout(() => { pointsPageMessageBoxEl.style.display = 'none'; }, duration);
             }
 
-            window.onclick = function(event) { // Close modal if clicked outside content
+            window.onclick = function(event) { /* ... same ... */ 
                 if (event.target.classList.contains('modal')) {
-                    closeModal(event.target.id); // Assumes modal backdrop has the ID
+                    closeModal(event.target.id); 
                 }
             }
 
@@ -382,7 +341,7 @@
             const mrcBankLoggedInUserFullName = sessionStorage.getItem('mrcBankLoggedInUserFullName');
 
             if (mrcBankLoggedInUserEmail && mrcBankLoggedInUserFullName) { /* ... same ... */ 
-                 if (userGreetingPointsNavEl) userGreetingPointsNavEl.textContent = `Hi, ${mrcBankLoggedInUserFullName.split(' ')[0]}`;
+                if (userGreetingPointsNavEl) userGreetingPointsNavEl.textContent = `Hi, ${mrcBankLoggedInUserFullName.split(' ')[0]}`;
                 if (logoutButtonPointsEl) logoutButtonPointsEl.classList.remove('hidden');
                 loadPointsUserData();
             } else {
@@ -391,7 +350,7 @@
             }
 
             if (logoutButtonPointsEl) { /* ... same ... */ 
-                logoutButtonPointsEl.addEventListener('click', () => {
+                 logoutButtonPointsEl.addEventListener('click', () => {
                     sessionStorage.removeItem('mrcBankLoggedInUserEmail');
                     sessionStorage.removeItem('mrcBankLoggedInUserFullName');
                     showPointsPageMessage("You have been logged out.", "success");
@@ -399,57 +358,57 @@
                 });
             }
 
-            function loadPointsUserData() { /* ... same ... */
+            function loadPointsUserData() { /* ... same ... */ 
                 const users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
                 const userIndex = users.findIndex(user => user.email === mrcBankLoggedInUserEmail);
-
                 if (userIndex !== -1) {
                     currentBankUser = users[userIndex]; 
                     pointsLoadingStateEl.style.display = 'none';
                     pointsPageContentEl.classList.remove('hidden');
-                    
                     displayPointsBalance();
                     renderPointsHistory();
                     updateEarnPointsUI(); 
-
-                    if (currentBankUser.isBanned === true) {
-                        handleBannedPointsPage();
-                    }
+                    if (currentBankUser.isBanned === true) { handleBannedPointsPage(); }
                 } else {
                     showPointsPageMessage("Error loading your account data. Please log in again.", "error");
-                     setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+                    setTimeout(() => { window.location.href = 'login.html'; }, 2500);
                 }
             }
             
-            function handleBannedPointsPage() { /* ... updated to include new buttons ... */
+            function handleBannedPointsPage() { /* ... updated for new buttons ... */ 
                 if (redeemPointsButtonEl) redeemPointsButtonEl.disabled = true;
                 if (claimDailyBonusButtonEl) claimDailyBonusButtonEl.disabled = true;
-                if (learnSecurePayButtonEl) learnSecurePayButtonEl.disabled = true; // Updated ID
+                if (learnSecurePayButtonEl) learnSecurePayButtonEl.disabled = true;
                 if (applyPromoCodeButtonEl) applyPromoCodeButtonEl.disabled = true;
                 if (promoCodeInputEl) promoCodeInputEl.disabled = true;
-                if (referFriendButtonEl) referFriendButtonEl.disabled = true;
+                if (openReferFriendModalButtonEl) openReferFriendModalButtonEl.disabled = true;
                 if (watchVideoButtonEl) watchVideoButtonEl.disabled = true;
-                if (completeProfileButtonEl) completeProfileButtonEl.disabled = true;
-                if (enable2FAButtonEl) enable2FAButtonEl.disabled = true;
-                if (subscribeNewsletterButtonEl) subscribeNewsletterButtonEl.disabled = true;
-                if (socialShareButtonEl) socialShareButtonEl.disabled = true;
+                if (openCompleteProfileModalButtonEl) openCompleteProfileModalButtonEl.disabled = true;
+                if (openEnable2FAModalButtonEl) openEnable2FAModalButtonEl.disabled = true;
+                if (openSubscribeModalButtonEl) openSubscribeModalButtonEl.disabled = true;
+                if (openSocialShareModalButtonEl) openSocialShareModalButtonEl.disabled = true;
                 if (openFeedbackModalButtonEl) openFeedbackModalButtonEl.disabled = true;
                 if (weeklyCheckinButtonEl) weeklyCheckinButtonEl.disabled = true;
                 if (openQuizModalButtonEl) openQuizModalButtonEl.disabled = true;
+                // New buttons
+                if(visitFAQButtonEl) visitFAQButtonEl.disabled = true;
+                if(downloadStatementButtonEl) downloadStatementButtonEl.disabled = true;
+                if(watchBudgetingVideoButtonEl) watchBudgetingVideoButtonEl.disabled = true;
+                if(openUpdateContactModalButtonEl) openUpdateContactModalButtonEl.disabled = true;
+                if(readScamArticleButtonEl) readScamArticleButtonEl.disabled = true;
 
                 const redeemFormInputs = redeemPointsFormEl.querySelectorAll('input');
                 redeemFormInputs.forEach(input => input.disabled = true);
-                
                 if(bannedUserPointsWarningEl) bannedUserPointsWarningEl.style.display = 'block';
             }
 
             function displayPointsBalance() { /* ... same ... */ 
-                 if (pointsBalanceDisplayEl && currentBankUser) {
+                if (pointsBalanceDisplayEl && currentBankUser) {
                     pointsBalanceDisplayEl.textContent = currentBankUser.points || 0;
                 }
             }
             function renderPointsHistory() { /* ... same ... */ 
-                if (!pointsHistoryListEl || !currentBankUser) return;
+                 if (!pointsHistoryListEl || !currentBankUser) return;
                 pointsHistoryListEl.innerHTML = ''; 
                 if (currentBankUser.pointsHistory && currentBankUser.pointsHistory.length > 0) {
                     currentBankUser.pointsHistory.slice().reverse().forEach(entry => {
@@ -473,7 +432,7 @@
             }
             
             function saveUserAndUpdate(updatedUser) { /* ... same ... */ 
-                let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
+                 let users = JSON.parse(localStorage.getItem('mrcBankUsers')) || [];
                 const userIndex = users.findIndex(u => u.email === updatedUser.email);
                 if (userIndex !== -1) {
                     users[userIndex] = updatedUser;
@@ -486,71 +445,7 @@
                      showPointsPageMessage("Error saving user data.", "error");
                 }
             }
-
-            // --- Earn Points Logic ---
-            function updateEarnPointsUI() { /* ... updated for new tasks ... */ 
-                if (!currentBankUser) return;
-                const today = new Date().toISOString().split('T')[0];
-
-                if (claimDailyBonusButtonEl) {
-                    claimDailyBonusButtonEl.disabled = currentBankUser.lastDailyBonusClaimed === today;
-                    claimDailyBonusButtonEl.textContent = currentBankUser.lastDailyBonusClaimed === today ? "Claimed Today" : `Claim ${DAILY_BONUS_POINTS} Points`;
-                }
-                if (learnSecurePayButtonEl) { // Changed from completeTaskButtonEl
-                    learnSecurePayButtonEl.disabled = currentBankUser.taskSecurePayCompleted === true;
-                    learnSecurePayButtonEl.textContent = currentBankUser.taskSecurePayCompleted === true ? "Task Completed" : "Learn & Claim";
-                }
-                if (referFriendButtonEl) {
-                    referFriendButtonEl.disabled = currentBankUser.referFriendBonusClaimed === true;
-                    referFriendButtonEl.textContent = currentBankUser.referFriendBonusClaimed === true ? "Bonus Claimed" : "Claim Referral Bonus";
-                }
-                if (watchVideoButtonEl) {
-                    const adsWatchedData = currentBankUser.videoAdsWatched || {};
-                    const adsToday = adsWatchedData[today] || 0;
-                    if (videoAdsWatchedTodayDisplayEl) videoAdsWatchedTodayDisplayEl.textContent = adsToday;
-                    watchVideoButtonEl.disabled = adsToday >= MAX_ADS_PER_DAY;
-                    watchVideoButtonEl.textContent = adsToday >= MAX_ADS_PER_DAY ? `Limit Reached (${MAX_ADS_PER_DAY}/day)` : `Watch Ad (${WATCH_AD_POINTS} Points)`;
-                }
-                if (completeProfileButtonEl) {
-                    completeProfileButtonEl.disabled = currentBankUser.profileCompletedBonusClaimed === true;
-                    completeProfileButtonEl.textContent = currentBankUser.profileCompletedBonusClaimed === true ? "Profile Bonus Claimed" : "Confirm Profile Completion";
-                }
-                if (enable2FAButtonEl) {
-                    enable2FAButtonEl.disabled = currentBankUser.twoFactorBonusClaimed === true;
-                    enable2FAButtonEl.textContent = currentBankUser.twoFactorBonusClaimed === true ? "2FA Bonus Claimed" : "Confirm 2FA Enabled";
-                }
-                if (subscribeNewsletterButtonEl) {
-                    subscribeNewsletterButtonEl.disabled = currentBankUser.newsletterBonusClaimed === true;
-                    subscribeNewsletterButtonEl.textContent = currentBankUser.newsletterBonusClaimed === true ? "Subscribed & Claimed" : "Subscribe & Claim";
-                }
-                if (socialShareButtonEl) {
-                    socialShareButtonEl.disabled = currentBankUser.socialShareBonusClaimed === true;
-                    socialShareButtonEl.textContent = currentBankUser.socialShareBonusClaimed === true ? "Shared & Claimed" : "Confirm Share";
-                }
-                if (openFeedbackModalButtonEl) {
-                    openFeedbackModalButtonEl.disabled = currentBankUser.feedbackBonusClaimed === true;
-                    openFeedbackModalButtonEl.textContent = currentBankUser.feedbackBonusClaimed === true ? "Feedback Bonus Claimed" : "Provide Feedback";
-                }
-                if (weeklyCheckinButtonEl) {
-                    const lastClaimedWeek = currentBankUser.lastWeeklyBonusClaimedDate ? getWeekNumber(new Date(currentBankUser.lastWeeklyBonusClaimedDate)) : -1;
-                    const currentWeek = getWeekNumber(new Date());
-                    const currentYear = new Date().getFullYear();
-                    const lastClaimedYear = currentBankUser.lastWeeklyBonusClaimedDate ? new Date(currentBankUser.lastWeeklyBonusClaimedDate).getFullYear() : -1;
-                    if (lastClaimedWeek === currentWeek && lastClaimedYear === currentYear) {
-                        weeklyCheckinButtonEl.disabled = true;
-                        weeklyCheckinButtonEl.textContent = "Claimed This Week";
-                    } else {
-                        weeklyCheckinButtonEl.disabled = false;
-                        weeklyCheckinButtonEl.textContent = "Claim Weekly Bonus";
-                    }
-                }
-                if (openQuizModalButtonEl) { // Changed from quizAnswerButtonEl
-                    openQuizModalButtonEl.disabled = currentBankUser.quizBonusClaimed === true;
-                    openQuizModalButtonEl.textContent = currentBankUser.quizBonusClaimed === true ? "Quiz Bonus Claimed" : "Take Quiz";
-                }
-            }
-            
-            function getWeekNumber(d) { /* ... same ... */ 
+             function getWeekNumber(d) { /* ... same ... */ 
                 d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
                 d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
                 var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
@@ -558,22 +453,108 @@
                 return weekNo;
             }
 
-            // Event Listeners for existing earn methods
+            function addPoints(points, description) { // Helper function to add points and history
+                if (!currentBankUser || currentBankUser.isBanned) return false;
+                currentBankUser.points = (currentBankUser.points || 0) + points;
+                if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
+                currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: description, points: points, type: "earned"});
+                return true;
+            }
+
+            // --- Earn Points Logic UI Update ---
+            function updateEarnPointsUI() { /* ... updated for new tasks ... */ 
+                if (!currentBankUser) return;
+                const today = new Date().toISOString().split('T')[0];
+
+                if (claimDailyBonusButtonEl) { /* ... same ... */ 
+                    claimDailyBonusButtonEl.disabled = currentBankUser.lastDailyBonusClaimed === today;
+                    claimDailyBonusButtonEl.textContent = currentBankUser.lastDailyBonusClaimed === today ? "Claimed Today" : `Claim ${DAILY_BONUS_POINTS} Points`;
+                }
+                if (learnSecurePayButtonEl) { 
+                    learnSecurePayButtonEl.disabled = currentBankUser.taskSecurePayCompleted === true;
+                    learnSecurePayButtonEl.textContent = currentBankUser.taskSecurePayCompleted === true ? "Task Completed" : "Learn & Claim";
+                }
+                if (openReferFriendModalButtonEl) { // Changed from referFriendButtonEl
+                    openReferFriendModalButtonEl.disabled = currentBankUser.referFriendBonusClaimed === true;
+                    openReferFriendModalButtonEl.textContent = currentBankUser.referFriendBonusClaimed === true ? "Bonus Claimed" : "Refer & Claim";
+                }
+                if (watchVideoButtonEl) { /* ... same ... */ 
+                    const adsWatchedData = currentBankUser.videoAdsWatched || {};
+                    const adsToday = adsWatchedData[today] || 0;
+                    if (videoAdsWatchedTodayDisplayEl) videoAdsWatchedTodayDisplayEl.textContent = adsToday;
+                    watchVideoButtonEl.disabled = adsToday >= MAX_ADS_PER_DAY;
+                    watchVideoButtonEl.textContent = adsToday >= MAX_ADS_PER_DAY ? `Limit Reached (${MAX_ADS_PER_DAY}/day)` : `Watch Ad (${WATCH_AD_POINTS} Points)`;
+                }
+                if (openCompleteProfileModalButtonEl) { // Changed from completeProfileButtonEl
+                    openCompleteProfileModalButtonEl.disabled = currentBankUser.profileCompletedBonusClaimed === true;
+                    openCompleteProfileModalButtonEl.textContent = currentBankUser.profileCompletedBonusClaimed === true ? "Profile Bonus Claimed" : "Complete Profile & Claim";
+                }
+                if (openEnable2FAModalButtonEl) { // Changed
+                    openEnable2FAModalButtonEl.disabled = currentBankUser.twoFactorBonusClaimed === true;
+                    openEnable2FAModalButtonEl.textContent = currentBankUser.twoFactorBonusClaimed === true ? "2FA Bonus Claimed" : "Enable 2FA & Claim";
+                }
+                if (openSubscribeModalButtonEl) { // Changed
+                    openSubscribeModalButtonEl.disabled = currentBankUser.newsletterBonusClaimed === true;
+                    openSubscribeModalButtonEl.textContent = currentBankUser.newsletterBonusClaimed === true ? "Subscribed & Claimed" : "Subscribe & Claim";
+                }
+                if (openSocialShareModalButtonEl) { // Changed
+                    openSocialShareModalButtonEl.disabled = currentBankUser.socialShareBonusClaimed === true;
+                    openSocialShareModalButtonEl.textContent = currentBankUser.socialShareBonusClaimed === true ? "Shared & Claimed" : "Share & Claim";
+                }
+                if (openFeedbackModalButtonEl) {
+                    openFeedbackModalButtonEl.disabled = currentBankUser.feedbackBonusClaimed === true;
+                    openFeedbackModalButtonEl.textContent = currentBankUser.feedbackBonusClaimed === true ? "Feedback Bonus Claimed" : "Provide Feedback";
+                }
+                if (weeklyCheckinButtonEl) { /* ... same ... */
+                    const lastClaimedWeek = currentBankUser.lastWeeklyBonusClaimedDate ? getWeekNumber(new Date(currentBankUser.lastWeeklyBonusClaimedDate)) : -1;
+                    const currentWeek = getWeekNumber(new Date());
+                    const currentYear = new Date().getFullYear();
+                    const lastClaimedYear = currentBankUser.lastWeeklyBonusClaimedDate ? new Date(currentBankUser.lastWeeklyBonusClaimedDate).getFullYear() : -1;
+                    if (lastClaimedWeek === currentWeek && lastClaimedYear === currentYear) {
+                        weeklyCheckinButtonEl.disabled = true; weeklyCheckinButtonEl.textContent = "Claimed This Week";
+                    } else { weeklyCheckinButtonEl.disabled = false; weeklyCheckinButtonEl.textContent = "Claim Weekly Bonus"; }
+                }
+                if (openQuizModalButtonEl) { 
+                    openQuizModalButtonEl.disabled = currentBankUser.quizBonusClaimed === true;
+                    openQuizModalButtonEl.textContent = currentBankUser.quizBonusClaimed === true ? "Quiz Bonus Claimed" : "Take Quiz";
+                }
+                // New tasks UI update
+                if (visitFAQButtonEl) {
+                    visitFAQButtonEl.disabled = currentBankUser.faqVisitedBonusClaimed === true;
+                    visitFAQButtonEl.textContent = currentBankUser.faqVisitedBonusClaimed === true ? "FAQ Bonus Claimed" : "Visit FAQ & Claim";
+                }
+                if (downloadStatementButtonEl) {
+                    downloadStatementButtonEl.disabled = currentBankUser.statementDownloadedBonusClaimed === true;
+                    downloadStatementButtonEl.textContent = currentBankUser.statementDownloadedBonusClaimed === true ? "Statement Bonus Claimed" : "Download & Claim";
+                }
+                 if (watchBudgetingVideoButtonEl) {
+                    watchBudgetingVideoButtonEl.disabled = currentBankUser.budgetingVideoWatchedBonusClaimed === true;
+                    watchBudgetingVideoButtonEl.textContent = currentBankUser.budgetingVideoWatchedBonusClaimed === true ? "Video Bonus Claimed" : "Watch Video & Claim";
+                }
+                if (openUpdateContactModalButtonEl) {
+                    openUpdateContactModalButtonEl.disabled = currentBankUser.contactInfoUpdatedBonusClaimed === true;
+                    openUpdateContactModalButtonEl.textContent = currentBankUser.contactInfoUpdatedBonusClaimed === true ? "Contact Info Bonus Claimed" : "Update Info & Claim";
+                }
+                if (readScamArticleButtonEl) {
+                    readScamArticleButtonEl.disabled = currentBankUser.scamArticleReadBonusClaimed === true;
+                    readScamArticleButtonEl.textContent = currentBankUser.scamArticleReadBonusClaimed === true ? "Article Bonus Claimed" : "Read Article & Claim";
+                }
+            }
+            
+            // --- Event Listeners for Existing Tasks ---
             if (claimDailyBonusButtonEl) { /* ... same ... */ 
                 claimDailyBonusButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date().toISOString().split('T')[0];
                     if (currentBankUser.lastDailyBonusClaimed !== today) {
-                        currentBankUser.points = (currentBankUser.points || 0) + DAILY_BONUS_POINTS;
-                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: today, description: "Daily Login Bonus", points: DAILY_BONUS_POINTS, type: "earned"});
-                        currentBankUser.lastDailyBonusClaimed = today;
-                        saveUserAndUpdate(currentBankUser);
-                        showPointsPageMessage(`You claimed ${DAILY_BONUS_POINTS} points!`, "success");
+                        if(addPoints(DAILY_BONUS_POINTS, "Daily Login Bonus")) {
+                            currentBankUser.lastDailyBonusClaimed = today;
+                            saveUserAndUpdate(currentBankUser);
+                            showPointsPageMessage(`You claimed ${DAILY_BONUS_POINTS} points!`, "success");
+                        }
                     } else { showPointsPageMessage("Daily bonus already claimed today.", "info"); }
                 });
             }
-            // MODIFIED: Learn SecurePay (was completeTaskButton)
             if (learnSecurePayButtonEl) { 
                 learnSecurePayButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.taskSecurePayCompleted) return;
@@ -583,18 +564,16 @@
             if (confirmLearnedSecurePayButtonEl) {
                 confirmLearnedSecurePayButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.taskSecurePayCompleted) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + TASK_SECUREPAY_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Completed 'Learn about MRC SecurePay'", points: TASK_SECUREPAY_POINTS, type: "earned"});
-                    currentBankUser.taskSecurePayCompleted = true;
-                    saveUserAndUpdate(currentBankUser);
-                    closeModal('learnSecurePayModal');
-                    showPointsPageMessage(`Task completed! You earned ${TASK_SECUREPAY_POINTS} points.`, "success");
+                    if(addPoints(TASK_SECUREPAY_POINTS, "Completed 'Learn about MRC SecurePay'")) {
+                        currentBankUser.taskSecurePayCompleted = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('learnSecurePayModal');
+                        showPointsPageMessage(`Task completed! You earned ${TASK_SECUREPAY_POINTS} points.`, "success");
+                    }
                 });
             }
-
             if (promoCodeFormEl) { /* ... same ... */ 
-                 promoCodeFormEl.addEventListener('submit', (e) => {
+                promoCodeFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const code = promoCodeInputEl.value.toUpperCase().trim();
@@ -605,186 +584,310 @@
                     if (currentBankUser.usedPromoCodes.includes(code)) {
                         showPointsPageMessage("You have already used this promo code.", "info"); return;
                     }
-                    currentBankUser.points = (currentBankUser.points || 0) + promo.points;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: `Promo Code: ${code} (${promo.message})`, points: promo.points, type: "earned"});
-                    currentBankUser.usedPromoCodes.push(code);
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Promo code applied! You received ${promo.points} points.`, "success");
-                    promoCodeInputEl.value = '';
+                    if(addPoints(promo.points, `Promo Code: ${code} (${promo.message})`)) {
+                        currentBankUser.usedPromoCodes.push(code);
+                        saveUserAndUpdate(currentBankUser);
+                        showPointsPageMessage(`Promo code applied! You received ${promo.points} points.`, "success");
+                        promoCodeInputEl.value = '';
+                    }
                 });
             }
-            if (referFriendButtonEl) { /* ... same ... */ 
-                referFriendButtonEl.addEventListener('click', () => {
+             // MODIFIED: Refer a Friend (to open modal)
+            if (openReferFriendModalButtonEl) {
+                openReferFriendModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.referFriendBonusClaimed) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + REFER_FRIEND_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Refer a Friend Bonus", points: REFER_FRIEND_POINTS, type: "earned"});
-                    currentBankUser.referFriendBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Referral bonus of ${REFER_FRIEND_POINTS} points claimed!`, "success");
+                    openModal('referFriendModal');
                 });
             }
+            if (referFriendFormEl) { // Handle the modal form submission
+                referFriendFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.referFriendBonusClaimed) return;
+                    const friendEmail = document.getElementById('friendEmailInput').value.trim();
+                    if (!friendEmail) { // Simple check for demo
+                        showPointsPageMessage("Please enter a friend's email (simulated).", "error");
+                        return;
+                    }
+                    // Simulate sending referral
+                    console.log("Referral sent to (simulated):", friendEmail);
+                    if(addPoints(REFER_FRIEND_POINTS, "Refer a Friend Bonus")) {
+                        currentBankUser.referFriendBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('referFriendModal');
+                        referFriendFormEl.reset();
+                        showPointsPageMessage(`Referral bonus of ${REFER_FRIEND_POINTS} points claimed!`, "success");
+                    }
+                });
+            }
+
             if (watchVideoButtonEl) { /* ... same ... */ 
-                 watchVideoButtonEl.addEventListener('click', () => {
+                watchVideoButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date().toISOString().split('T')[0];
                     if (!currentBankUser.videoAdsWatched) currentBankUser.videoAdsWatched = {};
                     const adsToday = currentBankUser.videoAdsWatched[today] || 0;
                     if (adsToday < MAX_ADS_PER_DAY) {
-                        currentBankUser.points = (currentBankUser.points || 0) + WATCH_AD_POINTS;
-                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: today, description: "Watched Video Ad", points: WATCH_AD_POINTS, type: "earned"});
-                        currentBankUser.videoAdsWatched[today] = adsToday + 1;
-                        saveUserAndUpdate(currentBankUser);
-                        showPointsPageMessage(`You earned ${WATCH_AD_POINTS} points for watching an ad!`, "success");
+                        // Simulate watching ad
+                        showPointsPageMessage("Playing ad... (simulated)", "info", 1500);
+                        setTimeout(() => {
+                            if(addPoints(WATCH_AD_POINTS, "Watched Video Ad")) {
+                                currentBankUser.videoAdsWatched[today] = adsToday + 1;
+                                saveUserAndUpdate(currentBankUser);
+                                showPointsPageMessage(`You earned ${WATCH_AD_POINTS} points for watching an ad!`, "success");
+                            }
+                        }, 1500);
                     } else { showPointsPageMessage("You have reached the daily limit for watching video ads.", "info"); }
                 });
             }
 
-            // Event listeners for new 10 ways
-            if (completeProfileButtonEl) { /* ... same ... */ 
-                completeProfileButtonEl.addEventListener('click', () => {
+            // MODIFIED: Complete Profile (open modal)
+            if (openCompleteProfileModalButtonEl) {
+                openCompleteProfileModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.profileCompletedBonusClaimed) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + COMPLETE_PROFILE_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Profile Completion Bonus", points: COMPLETE_PROFILE_POINTS, type: "earned"});
-                    currentBankUser.profileCompletedBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Profile bonus of ${COMPLETE_PROFILE_POINTS} points claimed!`, "success");
+                    openModal('completeProfileModal');
                 });
             }
-            if (enable2FAButtonEl) { /* ... same ... */ 
-                enable2FAButtonEl.addEventListener('click', () => {
+            if (confirmProfileCompletionButtonEl) {
+                confirmProfileCompletionButtonEl.addEventListener('click', () => {
+                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.profileCompletedBonusClaimed) return;
+                    if(addPoints(COMPLETE_PROFILE_POINTS, "Profile Completion Bonus")){
+                        currentBankUser.profileCompletedBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('completeProfileModal');
+                        showPointsPageMessage(`Profile bonus of ${COMPLETE_PROFILE_POINTS} points claimed!`, "success");
+                    }
+                });
+            }
+            
+            // MODIFIED: Enable 2FA (open modal)
+            if (openEnable2FAModalButtonEl) {
+                openEnable2FAModalButtonEl.addEventListener('click', () => {
+                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.twoFactorBonusClaimed) return;
+                    openModal('enable2FAModal');
+                });
+            }
+            if(confirm2FAEnabledButtonEl) {
+                confirm2FAEnabledButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.twoFactorBonusClaimed) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + ENABLE_2FA_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "2FA Enabled Bonus", points: ENABLE_2FA_POINTS, type: "earned"});
-                    currentBankUser.twoFactorBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`2FA bonus of ${ENABLE_2FA_POINTS} points claimed!`, "success");
+                    if(addPoints(ENABLE_2FA_POINTS, "2FA Enabled Bonus")) {
+                        currentBankUser.twoFactorBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('enable2FAModal');
+                        showPointsPageMessage(`2FA bonus of ${ENABLE_2FA_POINTS} points claimed!`, "success");
+                    }
                 });
             }
-            if (subscribeNewsletterButtonEl) { /* ... same ... */ 
-                subscribeNewsletterButtonEl.addEventListener('click', () => {
+
+            // MODIFIED: Subscribe Newsletter (open modal)
+            if (openSubscribeModalButtonEl) {
+                openSubscribeModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.newsletterBonusClaimed) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + SUBSCRIBE_NEWSLETTER_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Newsletter Subscription Bonus", points: SUBSCRIBE_NEWSLETTER_POINTS, type: "earned"});
-                    currentBankUser.newsletterBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Newsletter bonus of ${SUBSCRIBE_NEWSLETTER_POINTS} points claimed!`, "success");
+                    if(subscribeEmailDisplayEl) subscribeEmailDisplayEl.textContent = currentBankUser.email;
+                    openModal('subscribeModal');
                 });
             }
-            if (socialShareButtonEl) { /* ... same ... */ 
-                socialShareButtonEl.addEventListener('click', () => {
+            if(confirmSubscribeButtonEl) {
+                confirmSubscribeButtonEl.addEventListener('click', () => {
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.newsletterBonusClaimed) return;
+                    if(addPoints(SUBSCRIBE_NEWSLETTER_POINTS, "Newsletter Subscription Bonus")){
+                        currentBankUser.newsletterBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('subscribeModal');
+                        showPointsPageMessage(`Newsletter bonus of ${SUBSCRIBE_NEWSLETTER_POINTS} points claimed!`, "success");
+                    }
+                });
+            }
+            
+            // MODIFIED: Social Share (open modal)
+            if (openSocialShareModalButtonEl) {
+                openSocialShareModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.socialShareBonusClaimed) return;
-                    currentBankUser.points = (currentBankUser.points || 0) + SOCIAL_SHARE_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Social Media Share Bonus", points: SOCIAL_SHARE_POINTS, type: "earned"});
-                    currentBankUser.socialShareBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    showPointsPageMessage(`Social share bonus of ${SOCIAL_SHARE_POINTS} points claimed!`, "success");
+                    openModal('socialShareModal');
                 });
             }
-            // MODIFIED: Submit Feedback (open modal)
-            if (openFeedbackModalButtonEl) {
+            if(confirmSocialShareButtonEl) {
+                confirmSocialShareButtonEl.addEventListener('click', () => {
+                    if (!currentBankUser || currentBankUser.isBanned || currentBankUser.socialShareBonusClaimed) return;
+                    // User confirms they shared
+                    if(addPoints(SOCIAL_SHARE_POINTS, "Social Media Share Bonus")){
+                        currentBankUser.socialShareBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('socialShareModal');
+                        showPointsPageMessage(`Social share bonus of ${SOCIAL_SHARE_POINTS} points claimed!`, "success");
+                    }
+                });
+            }
+
+            if (openFeedbackModalButtonEl) { /* ... same as before ... */ 
                 openFeedbackModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.feedbackBonusClaimed) return;
                     openModal('feedbackModal');
                 });
             }
-            if (feedbackFormEl) {
+            if (feedbackFormEl) { /* ... same as before ... */ 
                 feedbackFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.feedbackBonusClaimed) return;
                     const feedbackText = feedbackTextareaEl.value.trim();
                     if (feedbackText.length < 10) {
-                        showPointsPageMessage("Please provide at least 10 characters of feedback.", "error");
-                        return;
+                        showPointsPageMessage("Please provide at least 10 characters of feedback.", "error"); return;
                     }
-                    // Simulate sending feedback
                     console.log("Feedback submitted:", feedbackText); 
-                    currentBankUser.points = (currentBankUser.points || 0) + SUBMIT_FEEDBACK_POINTS;
-                    if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                    currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Feedback Submission Bonus", points: SUBMIT_FEEDBACK_POINTS, type: "earned"});
-                    currentBankUser.feedbackBonusClaimed = true;
-                    saveUserAndUpdate(currentBankUser);
-                    closeModal('feedbackModal');
-                    feedbackTextareaEl.value = '';
-                    showPointsPageMessage(`Feedback bonus of ${SUBMIT_FEEDBACK_POINTS} points claimed!`, "success");
+                    if(addPoints(SUBMIT_FEEDBACK_POINTS, "Feedback Submission Bonus")) {
+                        currentBankUser.feedbackBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('feedbackModal');
+                        feedbackTextareaEl.value = '';
+                        showPointsPageMessage(`Feedback bonus of ${SUBMIT_FEEDBACK_POINTS} points claimed!`, "success");
+                    }
                 });
             }
-
-            if (weeklyCheckinButtonEl) { /* ... same ... */ 
-                weeklyCheckinButtonEl.addEventListener('click', () => {
+            if (weeklyCheckinButtonEl) { /* ... same as before ... */ 
+                 weeklyCheckinButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned) return;
                     const today = new Date();
                     const currentWeekYear = `${getWeekNumber(today)}-${today.getFullYear()}`;
                     if (currentBankUser.lastWeeklyBonusClaimed !== currentWeekYear) {
-                        currentBankUser.points = (currentBankUser.points || 0) + WEEKLY_BONUS_POINTS;
-                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: today.toISOString().split('T')[0], description: "Weekly Check-in Bonus", points: WEEKLY_BONUS_POINTS, type: "earned"});
-                        currentBankUser.lastWeeklyBonusClaimed = currentWeekYear;
-                        saveUserAndUpdate(currentBankUser);
-                        showPointsPageMessage(`Weekly bonus of ${WEEKLY_BONUS_POINTS} points claimed!`, "success");
+                        if(addPoints(WEEKLY_BONUS_POINTS, "Weekly Check-in Bonus")) {
+                            currentBankUser.lastWeeklyBonusClaimed = currentWeekYear;
+                            saveUserAndUpdate(currentBankUser);
+                            showPointsPageMessage(`Weekly bonus of ${WEEKLY_BONUS_POINTS} points claimed!`, "success");
+                        }
                     } else { showPointsPageMessage("Weekly bonus already claimed this week.", "info"); }
                 });
             }
-            // MODIFIED: Quiz (open modal)
-            if (openQuizModalButtonEl) { 
+            if (openQuizModalButtonEl) { /* ... same as before ... */ 
                 openQuizModalButtonEl.addEventListener('click', () => {
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.quizBonusClaimed) return;
                     openModal('quizModal');
                 });
             }
-            if (quizFormEl) {
+            if (quizFormEl) { /* ... same as before ... */ 
                 quizFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentBankUser || currentBankUser.isBanned || currentBankUser.quizBonusClaimed) return;
                     const selectedAnswer = quizFormEl.querySelector('input[name="quiz"]:checked');
                     if (!selectedAnswer) {
-                        showPointsPageMessage("Please select an answer for the quiz.", "error");
-                        return;
+                        showPointsPageMessage("Please select an answer for the quiz.", "error"); return;
                     }
                     if (selectedAnswer.value === CORRECT_QUIZ_ANSWER) {
-                        currentBankUser.points = (currentBankUser.points || 0) + QUIZ_BONUS_POINTS;
-                        if (!currentBankUser.pointsHistory) currentBankUser.pointsHistory = [];
-                        currentBankUser.pointsHistory.push({id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Financial Tip Quiz Bonus (Correct)", points: QUIZ_BONUS_POINTS, type: "earned"});
-                        currentBankUser.quizBonusClaimed = true;
-                        saveUserAndUpdate(currentBankUser);
-                        showPointsPageMessage(`Correct! Quiz bonus of ${QUIZ_BONUS_POINTS} points claimed!`, "success");
+                        if(addPoints(QUIZ_BONUS_POINTS, "Financial Tip Quiz Bonus (Correct)")) {
+                           currentBankUser.quizBonusClaimed = true; // Claimed whether right or wrong for one-time
+                           saveUserAndUpdate(currentBankUser);
+                           showPointsPageMessage(`Correct! Quiz bonus of ${QUIZ_BONUS_POINTS} points claimed!`, "success");
+                        }
                     } else {
-                        showPointsPageMessage("Incorrect answer. Try again next time!", "error");
-                        // Optionally, still mark as claimed to prevent re-attempts on wrong answer, or allow retries.
-                        // For simplicity here, we'll mark it claimed even if wrong to make it one-time.
+                        showPointsPageMessage("Incorrect answer. No points awarded this time.", "error");
                         currentBankUser.quizBonusClaimed = true; 
-                        saveUserAndUpdate(currentBankUser); // Save the claimed status
+                        saveUserAndUpdate(currentBankUser); 
                     }
-                    closeModal('quizModal');
-                    quizFormEl.reset();
+                    closeModal('quizModal'); quizFormEl.reset();
                 });
             }
 
+            // Event Listeners for NEW 5 tasks
+            if(visitFAQButtonEl){
+                visitFAQButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.faqVisitedBonusClaimed) return;
+                    openModal('visitFAQModal');
+                });
+            }
+            if(confirmFAQReadButtonEl){
+                confirmFAQReadButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.faqVisitedBonusClaimed) return;
+                    if(addPoints(FAQ_VISIT_POINTS, "Visited FAQ Page")){
+                        currentBankUser.faqVisitedBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('visitFAQModal');
+                        showPointsPageMessage(`You earned ${FAQ_VISIT_POINTS} points for visiting the FAQ!`, "success");
+                    }
+                });
+            }
+
+            if(downloadStatementButtonEl){
+                downloadStatementButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.statementDownloadedBonusClaimed) return;
+                    showPointsPageMessage("Simulating statement download...", "info", 1000);
+                    setTimeout(() => {
+                        if(addPoints(STATEMENT_DOWNLOAD_POINTS, "Simulated Statement Download")){
+                            currentBankUser.statementDownloadedBonusClaimed = true;
+                            saveUserAndUpdate(currentBankUser);
+                            showPointsPageMessage(`You earned ${STATEMENT_DOWNLOAD_POINTS} points!`, "success");
+                        }
+                    }, 1000);
+                });
+            }
+            
+            if(watchBudgetingVideoButtonEl){
+                watchBudgetingVideoButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.budgetingVideoWatchedBonusClaimed) return;
+                    openModal('watchBudgetingVideoModal');
+                });
+            }
+            if(confirmBudgetingVideoWatchedButtonEl){
+                confirmBudgetingVideoWatchedButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.budgetingVideoWatchedBonusClaimed) return;
+                    if(addPoints(BUDGETING_VIDEO_POINTS, "Watched Budgeting Video")){
+                        currentBankUser.budgetingVideoWatchedBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('watchBudgetingVideoModal');
+                        showPointsPageMessage(`You earned ${BUDGETING_VIDEO_POINTS} points!`, "success");
+                    }
+                });
+            }
+
+            if(openUpdateContactModalButtonEl){
+                openUpdateContactModalButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.contactInfoUpdatedBonusClaimed) return;
+                    openModal('updateContactModal');
+                });
+            }
+            if(updateContactFormEl){ // Changed from confirmContactUpdateEl to the form
+                updateContactFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.contactInfoUpdatedBonusClaimed) return;
+                    // Simulate saving - no actual data change needed for demo
+                    if(addPoints(UPDATE_CONTACT_POINTS, "'Updated' Contact Information")){
+                        currentBankUser.contactInfoUpdatedBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('updateContactModal');
+                        showPointsPageMessage(`You earned ${UPDATE_CONTACT_POINTS} points for 'updating' your info!`, "success");
+                    }
+                });
+            }
+            
+            if(readScamArticleButtonEl){
+                readScamArticleButtonEl.addEventListener('click', () => {
+                     if(!currentBankUser || currentBankUser.isBanned || currentBankUser.scamArticleReadBonusClaimed) return;
+                    openModal('readScamArticleModal');
+                });
+            }
+            if(confirmScamArticleReadButtonEl){
+                confirmScamArticleReadButtonEl.addEventListener('click', () => {
+                    if(!currentBankUser || currentBankUser.isBanned || currentBankUser.scamArticleReadBonusClaimed) return;
+                     if(addPoints(SCAM_ARTICLE_POINTS, "Read Scam Awareness Article")){
+                        currentBankUser.scamArticleReadBonusClaimed = true;
+                        saveUserAndUpdate(currentBankUser);
+                        closeModal('readScamArticleModal');
+                        showPointsPageMessage(`You earned ${SCAM_ARTICLE_POINTS} points for reading the article!`, "success");
+                    }
+                });
+            }
 
             // --- Redeem Points Logic ---
             if (redeemPointsFormEl && mrcBankLoggedInUserEmail) { /* ... same as before ... */ 
                 redeemPointsFormEl.addEventListener('submit', (e) => {
                     e.preventDefault();
                     if (!currentBankUser || currentBankUser.isBanned === true) {
-                        showPointsPageMessage("Your account is banned. You cannot redeem points.", "error");
-                        return;
+                        showPointsPageMessage("Your account is banned. You cannot redeem points.", "error"); return;
                     }
                     const pointsToRedeem = parseInt(document.getElementById('pointsToRedeem').value);
-                    const REDEMPTION_RATE_POINTS = 10; 
-                    const REDEMPTION_RATE_MRC = 1;    
+                    const REDEMPTION_RATE_POINTS = 10; const REDEMPTION_RATE_MRC = 1;    
                     if (isNaN(pointsToRedeem) || pointsToRedeem <= 0 || pointsToRedeem % REDEMPTION_RATE_POINTS !== 0) {
-                        showPointsPageMessage(`Please enter a valid number of points to redeem, in multiples of ${REDEMPTION_RATE_POINTS}.`, "error");
-                        return;
+                        showPointsPageMessage(`Please enter a valid number of points to redeem, in multiples of ${REDEMPTION_RATE_POINTS}.`, "error"); return;
                     }
                     if ((currentBankUser.points || 0) < pointsToRedeem) {
-                        showPointsPageMessage("You do not have enough points to redeem.", "error");
-                        return;
+                        showPointsPageMessage("You do not have enough points to redeem.", "error"); return;
                     }
                     const mrcEarned = (pointsToRedeem / REDEMPTION_RATE_POINTS) * REDEMPTION_RATE_MRC;
                     currentBankUser.points -= pointsToRedeem;
