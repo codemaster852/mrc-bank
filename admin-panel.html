@@ -21,14 +21,20 @@
         }
         .close-button { 
             color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
-            line-height: 1; /* Better vertical alignment */
+            line-height: 1; 
         }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
-        /* Custom scrollbar for user list table */
         .table-container::-webkit-scrollbar { width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* General Admin Panel Message Box */
+        .admin-panel-message-box {
+            padding: 0.75rem 1.25rem; margin-bottom: 1rem; border: 1px solid transparent;
+            border-radius: 0.375rem; display: none; text-align: center;
+        }
+        .admin-panel-message-box.success { color: #0f5132; background-color: #d1e7dd; border-color: #badbcc; }
+        .admin-panel-message-box.error { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -40,6 +46,8 @@
     </header>
 
     <main class="container mx-auto px-4 sm:px-6 py-8">
+        <div id="adminPanelGlobalMessageBox" class="admin-panel-message-box"></div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-lg text-center">
                 <h3 class="text-lg font-semibold text-gray-500">Total Users</h3>
@@ -153,22 +161,33 @@
         const modifyBalanceFormEl = document.getElementById('modifyBalanceForm');
         const modifyBalanceUserEmailInputEl = document.getElementById('modifyBalanceUserEmail');
         const modifyBalanceUserNameDisplayEl = document.getElementById('modifyBalanceUserNameDisplay');
+        const adminPanelGlobalMessageBoxEl = document.getElementById('adminPanelGlobalMessageBox');
 
 
         // Modal functions
         function openModal(modalId) { 
             const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = 'flex'; // Use flex for centering
+            if (modal) modal.style.display = 'flex'; 
         }
         function closeModal(modalId) { 
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none'; 
         }
-        // Close modal if clicked outside content
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = "none";
             }
+        }
+        
+        // General Admin Panel Message Function
+        function showAdminPanelMessage(message, type = "success", duration = 3000) {
+            if (!adminPanelGlobalMessageBoxEl) return;
+            adminPanelGlobalMessageBoxEl.textContent = message;
+            adminPanelGlobalMessageBoxEl.className = `admin-panel-message-box ${type}`;
+            adminPanelGlobalMessageBoxEl.style.display = 'block';
+            setTimeout(() => {
+                adminPanelGlobalMessageBoxEl.style.display = 'none';
+            }, duration);
         }
 
 
@@ -195,13 +214,11 @@
         function renderAdminDashboard() {
             const users = getUsers();
             
-            // Stats
             totalUsersStatEl.textContent = users.length;
             const totalBalance = users.reduce((sum, user) => sum + (user.balance || 0), 0);
             totalBalanceStatEl.textContent = `${totalBalance.toFixed(2)} MRC`;
 
-            // User List
-            adminUserListEl.innerHTML = ''; // Clear existing list
+            adminUserListEl.innerHTML = ''; 
             if (users.length === 0) {
                 adminUserListEl.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No users found.</td></tr>';
                 return;
@@ -209,7 +226,7 @@
 
             users.forEach(user => {
                 const row = adminUserListEl.insertRow();
-                row.className = user.isBanned ? 'bg-red-100 hover:bg-red-200' : 'hover:bg-gray-50';
+                row.className = user.isBanned === true ? 'bg-red-100 hover:bg-red-200' : 'hover:bg-gray-50'; // Explicitly check for true
                 
                 row.insertCell().textContent = user.fullName;
                 row.insertCell().textContent = user.email;
@@ -217,15 +234,15 @@
                 row.insertCell().textContent = (user.balance || 0).toFixed(2);
                 
                 const statusCell = row.insertCell();
-                statusCell.textContent = user.isBanned ? 'Banned' : 'Active';
-                statusCell.className = `px-6 py-4 whitespace-nowrap text-sm font-semibold ${user.isBanned ? 'text-red-600' : 'text-green-600'}`;
+                statusCell.textContent = user.isBanned === true ? 'Banned' : 'Active';
+                statusCell.className = `px-6 py-4 whitespace-nowrap text-sm font-semibold ${user.isBanned === true ? 'text-red-600' : 'text-green-600'}`;
 
                 const actionsCell = row.insertCell();
                 actionsCell.className = 'px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2';
                 
                 const banButton = document.createElement('button');
-                banButton.textContent = user.isBanned ? 'Unban' : 'Ban';
-                banButton.className = `px-3 py-1 rounded-md text-xs ${user.isBanned ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`;
+                banButton.textContent = user.isBanned === true ? 'Unban' : 'Ban';
+                banButton.className = `px-3 py-1 rounded-md text-xs ${user.isBanned === true ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`;
                 banButton.onclick = () => toggleBanUser(user.email);
                 actionsCell.appendChild(banButton);
 
@@ -252,48 +269,54 @@
                 const balance = parseFloat(document.getElementById('addUserBalance').value);
 
                 if (users.find(u => u.email === email)) {
-                    alert('User with this email already exists.');
+                    showAdminPanelMessage('User with this email already exists.', 'error');
                     return;
                 }
                 if (password.length < 8) {
-                    alert('Password must be at least 8 characters.');
+                    showAdminPanelMessage('Password must be at least 8 characters.', 'error');
                     return;
                 }
 
                 const newUser = {
-                    fullName,
-                    email,
-                    password, // WARNING: Plain text password
+                    fullName, email, password, 
                     cardNumber: generateCardNumberAdmin(),
                     cvv: generateCVVAdmin(),
                     expiryDate: "Forever",
                     balance: balance || 0,
                     transactions: balance > 0 ? [{ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin initial deposit", amount: balance, type: "deposit" }] : [],
-                    isBanned: false
+                    isBanned: false // Explicitly set to false
                 };
                 users.push(newUser);
                 saveUsers(users);
                 renderAdminDashboard();
                 closeModal('addUserModal');
                 addUserFormEl.reset();
-                 document.getElementById('addUserBalance').value = "100"; // Reset initial balance field
+                document.getElementById('addUserBalance').value = "100"; 
+                showAdminPanelMessage(`User ${fullName} created successfully.`, 'success');
             });
         }
 
         function toggleBanUser(email) {
+            console.log("Attempting to toggle ban for:", email);
             const users = getUsers();
             const userIndex = users.findIndex(u => u.email === email);
             if (userIndex !== -1) {
-                users[userIndex].isBanned = !users[userIndex].isBanned;
+                // More robust toggle: if isBanned is undefined or false, set to true. If true, set to false.
+                users[userIndex].isBanned = !(users[userIndex].isBanned === true); 
                 saveUsers(users);
                 renderAdminDashboard();
+                console.log(`User ${email} new ban status: ${users[userIndex].isBanned}`);
+                showAdminPanelMessage(`User ${users[userIndex].fullName}'s status updated to ${users[userIndex].isBanned ? 'Banned' : 'Active'}.`, 'success');
+            } else {
+                console.error(`User with email ${email} not found for banning.`);
+                showAdminPanelMessage(`Error: User with email ${email} not found.`, 'error');
             }
         }
 
         function openModifyBalanceModal(email, fullName) {
             modifyBalanceUserEmailInputEl.value = email;
             modifyBalanceUserNameDisplayEl.textContent = fullName;
-            document.getElementById('modifyAmount').value = ''; // Clear previous amount
+            document.getElementById('modifyAmount').value = ''; 
             openModal('modifyBalanceModal');
         }
 
@@ -306,7 +329,7 @@
                 const amount = parseFloat(document.getElementById('modifyAmount').value);
 
                 if (isNaN(amount) || amount <= 0) {
-                    alert('Please enter a valid positive amount.');
+                    showAdminPanelMessage('Please enter a valid positive amount.', 'error');
                     return;
                 }
 
@@ -314,25 +337,29 @@
                 if (userIndex !== -1) {
                     const user = users[userIndex];
                     if (action === 'remove' && (user.balance || 0) < amount) {
-                        alert('Cannot remove more than the current balance.');
+                        showAdminPanelMessage('Cannot remove more than the current balance.', 'error');
                         return;
                     }
 
-                    user.balance = user.balance || 0; // Ensure balance exists
-                    if (!user.transactions) user.transactions = []; // Ensure transactions array exists
+                    user.balance = user.balance || 0; 
+                    if (!user.transactions) user.transactions = []; 
 
+                    let transactionDescription = "";
                     if (action === 'add') {
                         user.balance += amount;
-                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin credit", amount: amount, type: "deposit" });
+                        transactionDescription = "Admin credit";
+                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: transactionDescription, amount: amount, type: "deposit" });
                     } else if (action === 'remove') {
                         user.balance -= amount;
-                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: "Admin debit", amount: amount, type: "payment" });
+                        transactionDescription = "Admin debit";
+                        user.transactions.push({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0], description: transactionDescription, amount: amount, type: "payment" });
                     }
                     saveUsers(users);
                     renderAdminDashboard();
                     closeModal('modifyBalanceModal');
+                    showAdminPanelMessage(`Balance for ${user.fullName} updated successfully.`, 'success');
                 } else {
-                    alert('User not found.');
+                    showAdminPanelMessage('User not found.', 'error');
                 }
             });
         }
