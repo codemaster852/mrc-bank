@@ -271,9 +271,22 @@
         async function renderAdminEditUser(userId) {
             const { data: user, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
             if (error || !user) { content.innerHTML = `<p class="text-red-500">Error fetching user data.</p>`; return; }
-            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto"><h2 class="text-3xl font-bold mb-6">Edit User: ${user.username}</h2><form id="admin-edit-form"><div class="mb-4"><label for="balance" class="block text-gray-700">Balance (MP)</label><input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg" value="${user.balance}"></div><div class="mb-4"><label for="card-type" class="block text-gray-700">Card Type</label><select id="card-type" class="w-full px-4 py-2 border rounded-lg bg-white"><option value="Platinum" ${user.card_type === 'Platinum' ? 'selected' : ''}>Platinum</option><option value="VIP" ${user.card_type === 'VIP' ? 'selected' : ''}>VIP</option><option value="Unlimited" ${user.card_type === 'Unlimited' ? 'selected' : ''}>Unlimited</option></select></div><div class="mb-6"><label for="reason" class="block text-gray-700">Reason for Change</label><input type="text" id="reason" class="w-full px-4 py-2 border rounded-lg" required placeholder="e.g., 'Bonus' or 'Correction'"></div><button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg mb-4">Update User</button></form><div id="admin-message" class="text-center my-4"></div><button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500' : 'bg-red-500'} text-white font-bold py-2 px-4 rounded-lg">${user.is_banned ? 'Unban User' : 'Ban User'}</button><p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500">Back to Admin Dashboard</a></p></div>`;
+            
+            const isUnlimited = user.card_type === 'Unlimited';
+
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto"><h2 class="text-3xl font-bold mb-6">Edit User: ${user.username}</h2><form id="admin-edit-form"><div class="mb-4"><label for="balance" class="block text-gray-700">Balance (MP)</label><input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg ${isUnlimited ? 'bg-gray-200' : ''}" value="${user.balance}" ${isUnlimited ? 'disabled' : ''}> ${isUnlimited ? '<p class="text-sm text-gray-500 mt-1">Balance is disabled for Unlimited card type.</p>' : ''}</div><div class="mb-4"><label for="card-type" class="block text-gray-700">Card Type</label><select id="card-type" class="w-full px-4 py-2 border rounded-lg bg-white"><option value="Platinum" ${user.card_type === 'Platinum' ? 'selected' : ''}>Platinum</option><option value="VIP" ${user.card_type === 'VIP' ? 'selected' : ''}>VIP</option><option value="Unlimited" ${user.card_type === 'Unlimited' ? 'selected' : ''}>Unlimited</option></select></div><div class="mb-6"><label for="reason" class="block text-gray-700">Reason for Change</label><input type="text" id="reason" class="w-full px-4 py-2 border rounded-lg" required placeholder="e.g., 'Bonus' or 'Correction'"></div><button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg mb-4">Update User</button></form><div id="admin-message" class="text-center my-4"></div><button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500' : 'bg-red-500'} text-white font-bold py-2 px-4 rounded-lg">${user.is_banned ? 'Unban User' : 'Ban User'}</button><p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500">Back to Admin Dashboard</a></p></div>`;
             document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateUser(e, userId, user.balance));
             document.getElementById('ban-button').addEventListener('click', () => handleAdminToggleBan(userId, user.is_banned));
+            document.getElementById('card-type').addEventListener('change', (e) => {
+                const balanceInput = document.getElementById('balance');
+                if (e.target.value === 'Unlimited') {
+                    balanceInput.disabled = true;
+                    balanceInput.classList.add('bg-gray-200');
+                } else {
+                    balanceInput.disabled = false;
+                    balanceInput.classList.remove('bg-gray-200');
+                }
+            });
         }
 
         // --- EVENT HANDLERS & LOGIC ---
@@ -354,37 +367,55 @@
             e.preventDefault();
             const recipientCard = document.getElementById('recipient-card').value.replace(/\s/g, '');
             const amount = parseFloat(document.getElementById('amount').value);
-            const reason = document.getElementById('reason').value;
+            const reason = document.getElementById('reason').value || 'User Transfer';
             const messageEl = document.getElementById('transfer-message');
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            
             messageEl.textContent = '';
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
 
-            if (isNaN(amount) || amount <= 0) { messageEl.textContent = 'Invalid amount.'; return; }
-            if (userProfile.card_type !== 'Unlimited' && userProfile.balance < amount) { messageEl.textContent = 'Insufficient funds.'; return; }
-            
-            const { data: recipient, error: recipientError } = await supabaseClient.from('profiles').select('id, balance').eq('card_number', recipientCard).single();
-            if (recipientError || !recipient) { messageEl.textContent = 'Recipient not found.'; return; }
-            if (recipient.id === userProfile.id) { messageEl.textContent = 'Cannot transfer to yourself.'; return; }
+            if (isNaN(amount) || amount <= 0) {
+                messageEl.textContent = 'Invalid amount.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Send Money';
+                return;
+            }
 
-            const newRecipientBalance = recipient.balance + amount;
-            let senderUpdate = { initial_balance_spent: true };
-            if (userProfile.card_type !== 'Unlimited') { senderUpdate.balance = userProfile.balance - amount; }
+            try {
+                const { error } = await supabaseClient.rpc('transfer_funds', {
+                    recipient_card_number: recipientCard,
+                    transfer_amount: amount,
+                    transfer_reason: reason
+                });
 
-            await supabaseClient.from('profiles').update(senderUpdate).eq('id', userProfile.id);
-            await supabaseClient.from('profiles').update({ balance: newRecipientBalance }).eq('id', recipient.id);
-            await supabaseClient.from('transactions').insert({ sender_id: userProfile.id, recipient_id: recipient.id, amount: amount, type: 'transfer', reason: reason });
-            
-            messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
-            document.getElementById('transfer-form').reset();
-            await fetchUserProfile();
+                if (error) { throw error; }
+                
+                messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP! Redirecting...`;
+                messageEl.className = 'text-green-500 text-center mt-4';
+                setTimeout(() => { navigate('/dashboard'); }, 2000);
+
+            } catch (error) {
+                console.error('Transfer error:', error);
+                messageEl.textContent = `Error: ${error.message}`;
+                messageEl.className = 'text-red-500 text-center mt-4';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Send Money';
+            }
         }
         
         async function handleAdminUpdateUser(e, userId, oldBalance) {
             e.preventDefault();
-            const newBalance = parseFloat(document.getElementById('balance').value);
             const cardType = document.getElementById('card-type').value;
+            let newBalance = parseFloat(document.getElementById('balance').value);
             const reason = document.getElementById('reason').value;
             const messageEl = document.getElementById('admin-message');
             
+            if (cardType === 'Unlimited') {
+                newBalance = 9999999.99; // Set a symbolic large number for unlimited
+            }
+
             if (isNaN(newBalance) || newBalance < 0 || !reason) { messageEl.textContent = 'Invalid balance or missing reason.'; return; }
             
             const { error } = await supabaseClient.from('profiles').update({ balance: newBalance, card_type: cardType }).eq('id', userId);
@@ -392,10 +423,11 @@
             if (error) { messageEl.textContent = `Error: ${error.message}`; } 
             else {
                 const balanceChange = newBalance - oldBalance;
-                if (balanceChange !== 0) {
+                if (balanceChange !== 0 && cardType !== 'Unlimited') { // Don't log balance change for setting to unlimited
                     await supabaseClient.from('transactions').insert({ recipient_id: userId, amount: Math.abs(balanceChange), type: balanceChange > 0 ? 'admin_add' : 'admin_remove', reason: `Admin: ${reason}` });
                 }
                 messageEl.textContent = 'User updated successfully!';
+                renderAdminEditUser(userId); // Re-render to show updated state
             }
         }
 
