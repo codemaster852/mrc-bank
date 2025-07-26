@@ -127,7 +127,9 @@
             
             updateUserMenu();
 
-            if (path.startsWith('/admin')) {
+            if (path.startsWith('/admin-login')) {
+                 renderAdminLogin();
+            } else if (path.startsWith('/admin')) {
                 renderAdmin(path);
             } else if (currentUser) {
                 switch (path) {
@@ -172,7 +174,7 @@
             } else {
                 userMenu.innerHTML = `
                     <div class="space-x-2">
-                        <button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
+                        <button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">User Login</button>
                         <button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
                     </div>
                 `;
@@ -203,7 +205,7 @@
                                 <h3 class="text-2xl font-semibold mb-2">Admin Panel</h3>
                                 <p>Admins can log in here to manage users, update balances, and oversee the platform.</p>
                             </div>
-                             <button onclick="navigate('/login')" class="mt-4 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Admin Login</button>
+                             <button onclick="navigate('/admin-login')" class="mt-4 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Admin Login</button>
                         </div>
                     </div>
                 </div>
@@ -213,7 +215,7 @@
         function renderLogin() {
             content.innerHTML = `
                 <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
-                    <h2 class="text-3xl font-bold text-center mb-6">Login</h2>
+                    <h2 class="text-3xl font-bold text-center mb-6">User Login</h2>
                     <form id="login-form">
                         <div class="mb-4">
                             <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
@@ -227,6 +229,28 @@
                     </form>
                     <p id="login-error" class="text-red-500 text-center mt-4"></p>
                     <p class="text-center mt-4">Don't have an account? <a href="#" onclick="navigate('/signup')" class="text-blue-500 hover:underline">Sign up</a></p>
+                </div>
+            `;
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+        }
+        
+        function renderAdminLogin() {
+             content.innerHTML = `
+                <div class="bg-gray-800 p-8 rounded-xl shadow-lg max-w-md mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-6 text-white">Admin Login</h2>
+                    <form id="login-form">
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-300 font-semibold mb-2">Admin Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-gray-300 font-semibold mb-2">Password</label>
+                            <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
+                    </form>
+                    <p id="login-error" class="text-red-400 text-center mt-4"></p>
+                    <p class="text-center mt-4"><a href="#" onclick="navigate('/login')" class="text-indigo-400 hover:underline">Not an admin? Go to User Login</a></p>
                 </div>
             `;
             document.getElementById('login-form').addEventListener('submit', handleLogin);
