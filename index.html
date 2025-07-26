@@ -14,6 +14,15 @@
         .card {
             background: linear-gradient(135deg, #6B7280 0%, #1F2937 100%);
         }
+        .card-platinum {
+             background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+        }
+        .card-vip {
+            background: linear-gradient(135deg, #fde047 0%, #b45309 100%);
+        }
+        .card-unlimited {
+            background: linear-gradient(135deg, #1f2937 0%, #000000 100%);
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -36,7 +45,6 @@
         // --- SUPABASE CLIENT SETUP ---
         const supabaseUrl = 'https://effpdesipfziszvborof.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmZnBkZXNpcGZ6aXN6dmJvcm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NTQzOTgsImV4cCI6MjA2OTAzMDM5OH0.JIgvjeBI_N_TpJRWc1ptKpr4CoXbAfT8huvNfRA1nqY';
-        // Renamed 'supabase' to 'supabaseClient' to avoid ReferenceError during initialization
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         // --- DOM ELEMENTS ---
@@ -167,6 +175,7 @@
                     <form id="signup-form">
                         <div class="mb-4">
                             <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
+                            <p class="text-sm text-gray-500 mb-2">This will be shown on your card, so please write your real name.</p>
                             <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
                         </div>
                         <div class="mb-4">
@@ -177,13 +186,29 @@
                             <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
                             <input type="password" id="password" minlength="8" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
                         </div>
-                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
+
+                        <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Terms and Policies</h4>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>If you write false data, your account will be banned.</li>
+                                <li>If you transfer money from your other accounts to your main account, all your accounts will get banned.</li>
+                            </ul>
+                            <div class="mt-4 flex items-center">
+                                <input type="checkbox" id="terms" class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                <label for="terms" class="ml-2 block text-sm text-gray-900">I have read and agree to the terms and policies.</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="signup-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:bg-gray-400" disabled>Sign Up</button>
                     </form>
                     <p id="signup-error" class="text-red-500 text-center mt-4"></p>
                     <p class="text-center mt-4">Already have an account? <a href="#" onclick="navigate('/login')" class="text-blue-500 hover:underline">Login</a></p>
                 </div>
             `;
             document.getElementById('signup-form').addEventListener('submit', handleSignup);
+            document.getElementById('terms').addEventListener('change', (e) => {
+                document.getElementById('signup-button').disabled = !e.target.checked;
+            });
         }
 
         function renderDashboard() {
@@ -191,28 +216,29 @@
                 content.innerHTML = '<p>Loading profile...</p>';
                 return;
             }
+            const cardClass = `card-${userProfile.card_type?.toLowerCase() || 'platinum'}`;
             content.innerHTML = `
                 <div class="grid md:grid-cols-2 gap-8">
                     <!-- Virtual Card -->
-                    <div class="card p-6 rounded-xl shadow-2xl text-white flex flex-col justify-between">
+                    <div class="card ${cardClass} p-6 rounded-xl shadow-2xl text-white flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-center">
                                 <h3 class="text-lg font-semibold">MRC Virtual Card</h3>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                <span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span>
                             </div>
                             <div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div>
                         </div>
                         <div class="flex justify-between items-end mt-4">
                             <div>
-                                <p class="text-xs text-gray-400">Card Holder</p>
+                                <p class="text-xs text-gray-200">Card Holder</p>
                                 <p class="font-medium">${userProfile.username}</p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-400">CVV</p>
+                                <p class="text-xs text-gray-200">CVV</p>
                                 <p class="font-medium">${userProfile.cvv}</p>
                             </div>
                              <div>
-                                <p class="text-xs text-gray-400">Expires</p>
+                                <p class="text-xs text-gray-200">Expires</p>
                                 <p class="font-medium">--/--</p>
                             </div>
                         </div>
@@ -221,13 +247,12 @@
                     <!-- Balance and Actions -->
                     <div class="bg-white p-8 rounded-xl shadow-lg">
                         <h3 class="text-2xl font-bold mb-2">Your Balance</h3>
-                        <p class="text-5xl font-bold text-blue-600">${userProfile.balance.toFixed(2)} <span class="text-3xl text-gray-500">MP</span></p>
+                        <p class="text-5xl font-bold text-blue-600">${userProfile.card_type === 'Unlimited' ? '∞' : userProfile.balance.toFixed(2)} <span class="text-3xl text-gray-500">MP</span></p>
                         <div class="mt-8">
                             <button onclick="navigate('/transfer')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Transfer MP</button>
                         </div>
                     </div>
                 </div>
-                <!-- Transaction History could go here -->
             `;
         }
         
@@ -282,7 +307,7 @@
                             <thead class="bg-gray-800 text-white">
                                 <tr>
                                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Username</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Card Number</th>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Card Type</th>
                                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Balance</th>
                                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Status</th>
                                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Actions</th>
@@ -292,8 +317,8 @@
                                 ${users.map(user => `
                                     <tr class="border-b">
                                         <td class="py-3 px-4">${user.username}</td>
-                                        <td class="py-3 px-4 font-mono">${formatCardNumber(user.card_number)}</td>
-                                        <td class="py-3 px-4">${user.balance.toFixed(2)} MP</td>
+                                        <td class="py-3 px-4 font-semibold">${user.card_type}</td>
+                                        <td class="py-3 px-4">${user.card_type === 'Unlimited' ? '∞' : user.balance.toFixed(2)} MP</td>
                                         <td class="py-3 px-4">${user.is_banned ? '<span class="text-red-500 font-semibold">Banned</span>' : '<span class="text-green-500 font-semibold">Active</span>'}</td>
                                         <td class="py-3 px-4">
                                             <button onclick="navigate('/admin/user/${user.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-bold py-1 px-2 rounded">Edit</button>
@@ -322,7 +347,15 @@
                             <label for="balance" class="block text-gray-700 font-semibold mb-2">Balance (MP)</label>
                             <input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg" value="${user.balance}">
                         </div>
-                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mb-4">Update Balance</button>
+                        <div class="mb-6">
+                            <label for="card-type" class="block text-gray-700 font-semibold mb-2">Card Type</label>
+                            <select id="card-type" class="w-full px-4 py-2 border rounded-lg bg-white">
+                                <option value="Platinum" ${user.card_type === 'Platinum' ? 'selected' : ''}>Platinum</option>
+                                <option value="VIP" ${user.card_type === 'VIP' ? 'selected' : ''}>VIP</option>
+                                <option value="Unlimited" ${user.card_type === 'Unlimited' ? 'selected' : ''}>Unlimited</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mb-4">Update User</button>
                     </form>
                     <div id="admin-message" class="text-center my-4"></div>
                      <button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white font-bold py-2 px-4 rounded-lg">
@@ -331,7 +364,7 @@
                     <p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500 hover:underline">Back to Admin Dashboard</a></p>
                 </div>
             `;
-            document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateBalance(e, userId));
+            document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateUser(e, userId));
             document.getElementById('ban-button').addEventListener('click', () => handleAdminToggleBan(userId, user.is_banned));
         }
 
@@ -340,7 +373,6 @@
 
         async function handleSignup(e) {
             e.preventDefault();
-            // FIX: Removed incorrect '.input' property to correctly get form values
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -356,6 +388,7 @@
                 }
                 if (user) {
                     await createProfile(user.id, username, true); // is_admin = true
+                    alert('Admin account created successfully! Please verify your email.');
                     navigate('/login');
                 }
             } else {
@@ -385,6 +418,7 @@
                 initial_balance_spent: false,
                 is_admin: isAdmin,
                 is_banned: false,
+                card_type: isAdmin ? 'Unlimited' : 'Platinum' // Default for new users
             });
 
             if (error) {
@@ -428,20 +462,19 @@
                 return;
             }
             
-            // Rule: Cannot transfer the first 100 MP
-            if (userProfile.balance <= 100 && !userProfile.initial_balance_spent) {
+            // Rule: Cannot transfer the first 100 MP, unless you have an Unlimited card
+            if (userProfile.card_type !== 'Unlimited' && userProfile.balance <= 100 && !userProfile.initial_balance_spent) {
                  messageEl.textContent = 'You cannot transfer your initial 100 MP bonus.';
                  messageEl.className = 'text-red-500 text-center mt-4';
                  return;
             }
 
-            if (userProfile.balance < amount) {
+            if (userProfile.card_type !== 'Unlimited' && userProfile.balance < amount) {
                 messageEl.textContent = 'Insufficient funds.';
                 messageEl.className = 'text-red-500 text-center mt-4';
                 return;
             }
 
-            // Find recipient
             const { data: recipient, error: recipientError } = await supabaseClient
                 .from('profiles')
                 .select('id, balance')
@@ -459,14 +492,18 @@
                 messageEl.className = 'text-red-500 text-center mt-4';
                 return;
             }
-
-            // Perform transaction
-            const newSenderBalance = userProfile.balance - amount;
+            
             const newRecipientBalance = recipient.balance + amount;
+            let senderUpdate = { initial_balance_spent: true };
+            
+            // Only decrease sender's balance if they are not Unlimited
+            if (userProfile.card_type !== 'Unlimited') {
+                senderUpdate.balance = userProfile.balance - amount;
+            }
 
             const { error: senderError } = await supabaseClient
                 .from('profiles')
-                .update({ balance: newSenderBalance, initial_balance_spent: true })
+                .update(senderUpdate)
                 .eq('id', userProfile.id);
 
             const { error: recipientUpdateError } = await supabaseClient
@@ -477,18 +514,18 @@
             if (senderError || recipientUpdateError) {
                 messageEl.textContent = 'Transaction failed. Please try again.';
                 messageEl.className = 'text-red-500 text-center mt-4';
-                 // Ideally, you'd have a proper transaction rollback here
             } else {
                 messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
                 messageEl.className = 'text-green-500 text-center mt-4';
                 document.getElementById('transfer-form').reset();
-                await fetchUserProfile(); // Refresh local profile
+                await fetchUserProfile();
             }
         }
         
-        async function handleAdminUpdateBalance(e, userId) {
+        async function handleAdminUpdateUser(e, userId) {
             e.preventDefault();
             const newBalance = parseFloat(document.getElementById('balance').value);
+            const cardType = document.getElementById('card-type').value;
             const messageEl = document.getElementById('admin-message');
             
             if (isNaN(newBalance) || newBalance < 0) {
@@ -497,13 +534,13 @@
                  return;
             }
             
-            const { error } = await supabaseClient.from('profiles').update({ balance: newBalance }).eq('id', userId);
+            const { error } = await supabaseClient.from('profiles').update({ balance: newBalance, card_type: cardType }).eq('id', userId);
             
             if (error) {
                 messageEl.textContent = `Error: ${error.message}`;
                 messageEl.className = 'text-red-500 text-center my-4';
             } else {
-                messageEl.textContent = 'Balance updated successfully!';
+                messageEl.textContent = 'User updated successfully!';
                 messageEl.className = 'text-green-500 text-center my-4';
             }
         }
@@ -518,7 +555,6 @@
             } else {
                 messageEl.textContent = `User has been ${!isCurrentlyBanned ? 'banned' : 'unbanned'}.`;
                 messageEl.className = 'text-green-500 text-center my-4';
-                // Refresh the view to show the new status
                 renderAdminEditUser(userId);
             }
         }
@@ -536,7 +572,6 @@
 
             if (error) {
                 console.error('Error fetching profile:', error);
-                // This can happen if profile creation failed after signup
                 if (error.code === 'PGRST116') {
                     await supabaseClient.auth.signOut();
                     navigate('/login');
@@ -559,71 +594,62 @@
         // --- INITIALIZATION ---
         window.addEventListener('hashchange', router);
         window.addEventListener('load', router);
-        window.navigate = navigate; // Make navigate globally accessible for inline event handlers
+        window.navigate = navigate;
         
         /*
         -- Supabase SQL for Tables and Policies
+        -- RUN THIS IN YOUR SUPABASE SQL EDITOR TO UPDATE YOUR DATABASE
 
-        -- 1. Create the profiles table
-        CREATE TABLE public.profiles (
-          id uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-          username text NOT NULL,
-          card_number text NOT NULL UNIQUE,
-          cvv text NOT NULL,
-          balance numeric(10, 2) NOT NULL DEFAULT 100.00,
-          initial_balance_spent boolean NOT NULL DEFAULT false,
-          is_admin boolean NOT NULL DEFAULT false,
-          is_banned boolean NOT NULL DEFAULT false,
-          created_at timestamp with time zone DEFAULT now(),
-          PRIMARY KEY (id)
-        );
+        -- Drop old policies to prevent conflicts
+        DROP POLICY IF EXISTS "Users can view their own profile." ON public.profiles;
+        DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
+        DROP POLICY IF EXISTS "Admins can view all profiles." ON public.profiles;
+        DROP POLICY IF EXISTS "Admins can update all profiles." ON public.profiles;
+        DROP POLICY IF EXISTS "Authenticated users can see card numbers for transfers." ON public.profiles;
+        DROP POLICY IF EXISTS "Allow public insert for new user profiles" ON public.profiles;
+        DROP POLICY IF EXISTS "Users can view own profile, and admins can view all" ON public.profiles;
+        DROP POLICY IF EXISTS "Users can update own profile, and admins can update all" ON public.profiles;
 
-        -- 2. Enable Row Level Security (RLS)
-        ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+        -- 1. Add the new 'card_type' column to the profiles table if it doesn't exist
+        -- This is a safe way to add a column without causing an error if it's already there.
+        DO $$
+        BEGIN
+          IF NOT EXISTS(SELECT *
+                        FROM information_schema.columns
+                        WHERE table_name='profiles' and column_name='card_type')
+          THEN
+              ALTER TABLE "public"."profiles" ADD COLUMN "card_type" text NOT NULL DEFAULT 'Platinum';
+          END IF;
+        END $$;
 
-        -- 3. Policies for profiles table
 
-        -- Users can see their own profile
-        CREATE POLICY "Users can view their own profile."
-        ON public.profiles FOR SELECT
-        USING (auth.uid() = id);
+        -- 2. Create new, more robust policies
 
-        -- Users can update their own profile (e.g., username, but we are not implementing this in the UI)
-        -- We restrict balance updates to be handled by transaction logic, not direct user updates.
-        CREATE POLICY "Users can update their own profile."
-        ON public.profiles FOR UPDATE
-        USING (auth.uid() = id);
-
-        -- Admins can see all profiles
-        CREATE POLICY "Admins can view all profiles."
-        ON public.profiles FOR SELECT
-        USING (
-          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-        );
-
-        -- Admins can update all profiles (for banning and adding balance)
-        CREATE POLICY "Admins can update all profiles."
-        ON public.profiles FOR UPDATE
-        USING (
-          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
-        );
-        
-        -- Allow authenticated users to see card numbers of other users for transfers
-        -- This is a simplified approach. In a real-world scenario, you'd want more checks.
-        CREATE POLICY "Authenticated users can see card numbers for transfers."
-        ON public.profiles FOR SELECT
-        USING (auth.role() = 'authenticated');
-        
-        -- NOTE: The insert operation is handled by a server-side function or, as in this code,
-        -- using the service role key implicitly via the anon key from the client.
-        -- To make it more secure, you would create a `handle_new_user` function in Supabase
-        -- that triggers on `auth.users` insertion.
-        -- For this project, we will rely on the client-side creation after signup.
-        
+        -- POLICY: Allow profile creation for any new user.
         CREATE POLICY "Allow public insert for new user profiles"
         ON public.profiles FOR INSERT
         WITH CHECK (true);
 
+        -- POLICY: A user can view their own profile, OR an admin can view any profile.
+        -- This combined rule is more efficient and avoids the 500 error.
+        CREATE POLICY "Users can view own profile, and admins can view all"
+        ON public.profiles FOR SELECT
+        USING (
+          auth.uid() = id OR
+          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+        );
+
+        -- POLICY: A user can update their own profile, OR an admin can update any profile.
+        CREATE POLICY "Users can update own profile, and admins can update all"
+        ON public.profiles FOR UPDATE
+        USING (
+          auth.uid() = id OR
+          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+        )
+        WITH CHECK (
+          auth.uid() = id OR
+          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+        );
         */
 
     </script>
