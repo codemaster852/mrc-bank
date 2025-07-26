@@ -114,23 +114,13 @@
             const session = await supabaseClient.auth.getSession();
             currentUser = session?.data?.session?.user || null;
             
-            if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
-                 isAdminLoggedIn = true;
-                 if (!currentUser) {
-                    await supabaseClient.auth.signInWithPassword({
-                        email: 'mostafaalatawy@gmail.com',
-                        password: '123456789#Osama'
-                    });
-                     const newSession = await supabaseClient.auth.getSession();
-                     currentUser = newSession?.data?.session?.user || null;
-                 }
-            } else {
-                isAdminLoggedIn = false;
-            }
+            isAdminLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
 
-            if (currentUser && !isAdminLoggedIn) {
+            if (currentUser) {
                 await fetchUserProfile();
-                await handleDailyLogin(); // Check for daily bonus
+                if (userProfile && !isAdminLoggedIn) {
+                    await handleDailyLogin();
+                }
             }
             
             updateUserMenu();
@@ -290,13 +280,12 @@
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
             if (email.toLowerCase() === 'mostafaalatawy@gmail.com' && password === '123456789#Osama') {
-                sessionStorage.setItem('isAdminLoggedIn', 'true');
-                isAdminLoggedIn = true;
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) {
-                    errorEl.textContent = "Admin login valid, but DB connection failed. Ensure the admin account exists in Supabase with the correct password.";
-                    setTimeout(() => navigate('/admin'), 2000);
+                    errorEl.textContent = "Login failed. Please ensure the admin account exists in Supabase with the correct password.";
                 } else {
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    isAdminLoggedIn = true;
                     navigate('/admin');
                 }
             } else {
@@ -327,33 +316,17 @@
             if (recipientError || !recipient) { messageEl.textContent = 'Recipient not found.'; return; }
             if (recipient.id === userProfile.id) { messageEl.textContent = 'Cannot transfer to yourself.'; return; }
 
-            // Use a batch of writes to ensure atomicity
             const newRecipientBalance = recipient.balance + amount;
             let senderUpdate = { initial_balance_spent: true };
-            if (userProfile.card_type !== 'Unlimited') {
-                senderUpdate.balance = userProfile.balance - amount;
-            }
+            if (userProfile.card_type !== 'Unlimited') { senderUpdate.balance = userProfile.balance - amount; }
 
-            const { error: updateError } = await supabaseClient.from('profiles').update(senderUpdate).eq('id', userProfile.id);
-            const { error: recipientUpdateError } = await supabaseClient.from('profiles').update({ balance: newRecipientBalance }).eq('id', recipient.id);
+            await supabaseClient.from('profiles').update(senderUpdate).eq('id', userProfile.id);
+            await supabaseClient.from('profiles').update({ balance: newRecipientBalance }).eq('id', recipient.id);
+            await supabaseClient.from('transactions').insert({ sender_id: userProfile.id, recipient_id: recipient.id, amount: amount, type: 'transfer', reason: reason });
             
-            // Log transaction
-            const { error: txError } = await supabaseClient.from('transactions').insert({
-                sender_id: userProfile.id,
-                recipient_id: recipient.id,
-                amount: amount,
-                type: 'transfer',
-                reason: reason
-            });
-
-            if (updateError || recipientUpdateError || txError) {
-                messageEl.textContent = 'Transaction failed.';
-                // Ideally, implement a rollback here
-            } else {
-                messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
-                document.getElementById('transfer-form').reset();
-                await fetchUserProfile();
-            }
+            messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
+            document.getElementById('transfer-form').reset();
+            await fetchUserProfile();
         }
         
         async function handleAdminUpdateUser(e, userId, oldBalance) {
@@ -369,15 +342,9 @@
             
             if (error) { messageEl.textContent = `Error: ${error.message}`; } 
             else {
-                // Log the balance change as a transaction
                 const balanceChange = newBalance - oldBalance;
                 if (balanceChange !== 0) {
-                    await supabaseClient.from('transactions').insert({
-                        recipient_id: userId,
-                        amount: Math.abs(balanceChange),
-                        type: balanceChange > 0 ? 'admin_add' : 'admin_remove',
-                        reason: `Admin: ${reason}`
-                    });
+                    await supabaseClient.from('transactions').insert({ recipient_id: userId, amount: Math.abs(balanceChange), type: balanceChange > 0 ? 'admin_add' : 'admin_remove', reason: `Admin: ${reason}` });
                 }
                 messageEl.textContent = 'User updated successfully!';
             }
@@ -394,19 +361,15 @@
         }
 
         async function handleDailyLogin() {
-            if (!currentUser) return;
+            if (!currentUser || !userProfile) return;
             const today = new Date().toISOString().split('T')[0];
-            const { data, error } = await supabaseClient.from('daily_logins').select('last_login_date').eq('user_id', currentUser.id).single();
+            const { data } = await supabaseClient.from('daily_logins').select('last_login_date').eq('user_id', currentUser.id).single();
 
             if (!data || data.last_login_date < today) {
-                // Grant bonus
                 const newBalance = userProfile.balance + 1;
                 await supabaseClient.from('profiles').update({ balance: newBalance }).eq('id', currentUser.id);
-                // Log transaction
                 await supabaseClient.from('transactions').insert({ recipient_id: currentUser.id, amount: 1, type: 'daily_bonus', reason: 'Daily login bonus' });
-                // Update login date
                 await supabaseClient.from('daily_logins').upsert({ user_id: currentUser.id, last_login_date: today });
-                // Refresh profile to show new balance immediately
                 await fetchUserProfile();
             }
         }
@@ -420,7 +383,7 @@
                 if (error.code === 'PGRST116') { await supabaseClient.auth.signOut(); navigate('/login'); }
             } else {
                 userProfile = data;
-                if (userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
+                if (userProfile && userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
             }
         }
 
