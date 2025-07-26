@@ -152,8 +152,8 @@
                     <h2 class="text-3xl font-bold text-center mb-6">Login</h2>
                     <form id="login-form">
                         <div class="mb-4">
-                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email or Admin Username</label>
-                            <input type="text" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                         </div>
                         <div class="mb-6">
                             <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
@@ -379,29 +379,22 @@
             const errorEl = document.getElementById('signup-error');
             errorEl.textContent = '';
 
-            // Admin check
-            if (username === 'Mostafa' && password === '123456789#Osama') {
-                const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) {
-                    errorEl.textContent = error.message;
-                    return;
-                }
-                if (user) {
-                    await createProfile(user.id, username, true); // is_admin = true
-                    alert('Admin account created successfully! Please verify your email.');
-                    navigate('/login');
-                }
-            } else {
-                const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) {
-                    errorEl.textContent = error.message;
-                    return;
-                }
-                if (user) {
-                    await createProfile(user.id, username);
-                    alert('Signup successful! Please check your email to verify your account.');
-                    navigate('/login');
-                }
+            // Admin account is created if the email matches
+            const isAdmin = (email === 'mostafaalatawy@gmail.com');
+
+            const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
+
+            if (error) {
+                errorEl.textContent = error.message;
+                return;
+            }
+            if (user) {
+                await createProfile(user.id, username, isAdmin);
+                const message = isAdmin 
+                    ? 'Admin account created successfully! Please verify your email.'
+                    : 'Signup successful! Please check your email to verify your account.';
+                alert(message);
+                navigate('/login');
             }
         }
 
@@ -418,7 +411,7 @@
                 initial_balance_spent: false,
                 is_admin: isAdmin,
                 is_banned: false,
-                card_type: isAdmin ? 'Unlimited' : 'Platinum' // Default for new users
+                card_type: isAdmin ? 'Unlimited' : 'Platinum'
             });
 
             if (error) {
@@ -428,29 +421,12 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            let emailInput = document.getElementById('email').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
 
-            // Special admin login check
-            if (emailInput === 'Mostafa' && password === '123456789#Osama') {
-                // --- IMPORTANT ---
-                // Replace this with the actual email you used to sign up the admin account.
-                // This is a workaround to allow logging in with the username "Mostafa".
-                const adminActualEmail = 'admin@example.com'; 
-                
-                if (adminActualEmail === 'admin@example.com') {
-                    errorEl.textContent = 'Admin login is not configured. The developer must set the admin email in the code.';
-                    return;
-                }
-                emailInput = adminActualEmail;
-            }
-
-            const { error } = await supabaseClient.auth.signInWithPassword({
-                email: emailInput,
-                password: password,
-            });
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
             if (error) {
                 errorEl.textContent = error.message;
@@ -616,7 +592,7 @@
         -- Supabase SQL for Tables and Policies
         -- RUN THIS IN YOUR SUPABASE SQL EDITOR TO UPDATE YOUR DATABASE
 
-        -- Drop old policies to prevent conflicts and apply new, safer ones
+        -- 1. Drop all old policies to prevent conflicts
         DROP POLICY IF EXISTS "Users can view their own profile." ON public.profiles;
         DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
         DROP POLICY IF EXISTS "Admins can view all profiles." ON public.profiles;
@@ -626,7 +602,7 @@
         DROP POLICY IF EXISTS "Users can view own profile, and admins can view all" ON public.profiles;
         DROP POLICY IF EXISTS "Users can update own profile, and admins can update all" ON public.profiles;
 
-        -- 1. Add the new 'card_type' column to the profiles table if it doesn't exist
+        -- 2. Add the 'card_type' column if it doesn't already exist
         DO $$
         BEGIN
           IF NOT EXISTS(SELECT *
@@ -637,8 +613,18 @@
           END IF;
         END $$;
 
+        -- 3. Create a helper function to check for admin status safely
+        -- This function prevents the "infinite recursion" error
+        CREATE OR REPLACE FUNCTION is_admin(user_id uuid)
+        RETURNS boolean AS $$
+          SELECT EXISTS (
+            SELECT 1
+            FROM public.profiles
+            WHERE id = user_id AND is_admin = true
+          );
+        $$ LANGUAGE sql SECURITY DEFINER;
 
-        -- 2. Create new, more robust policies
+        -- 4. Create new, robust policies using the helper function
 
         -- POLICY: Allow profile creation for any new user.
         CREATE POLICY "Allow public insert for new user profiles"
@@ -646,12 +632,11 @@
         WITH CHECK (true);
 
         -- POLICY: A user can view their own profile, OR an admin can view any profile.
-        -- This version is safer and prevents 500 errors if a profile doesn't exist for a logged-in user.
         CREATE POLICY "Users can view own profile, and admins can view all"
         ON public.profiles FOR SELECT
         USING (
           auth.uid() = id OR
-          (COALESCE((SELECT is_admin FROM public.profiles WHERE id = auth.uid()), false))
+          is_admin(auth.uid())
         );
 
         -- POLICY: A user can update their own profile, OR an admin can update any profile.
@@ -659,7 +644,7 @@
         ON public.profiles FOR UPDATE
         USING (
           auth.uid() = id OR
-          (COALESCE((SELECT is_admin FROM public.profiles WHERE id = auth.uid()), false))
+          is_admin(auth.uid())
         );
         */
 
