@@ -118,34 +118,48 @@
 
             if (currentUser) {
                 await fetchUserProfile();
-                if (userProfile && !isAdminLoggedIn) {
-                    await handleDailyLogin();
-                }
+                if (!userProfile && path !== '/') { return; }
+                if (userProfile && !isAdminLoggedIn) { await handleDailyLogin(); }
             }
             
             updateUserMenu();
 
-            const routes = {
-                '/admin-login': renderAdminLogin,
-                '/login': renderLogin,
-                '/signup': renderSignup,
-                '/dashboard': renderDashboard,
-                '/transfer': renderTransfer,
-                '/admin': renderAdminDashboard,
-            };
+            // --- REVISED ROUTING LOGIC ---
+            const publicPages = ['/', '/login', '/signup', '/admin-login'];
+            const adminRouteMatch = path.match(/^\/admin(\/user\/.+)?$/);
 
-            const adminRouteMatch = path.match(/^\/admin\/user\/(.+)$/);
-
-            if (isAdminLoggedIn && path.startsWith('/admin')) {
+            if (isAdminLoggedIn) {
                 if (adminRouteMatch) {
-                    renderAdminEditUser(adminRouteMatch[1]);
+                    const userId = adminRouteMatch[1] ? adminRouteMatch[1].split('/')[2] : null;
+                    if (userId) {
+                        renderAdminEditUser(userId);
+                    } else {
+                        renderAdminDashboard();
+                    }
                 } else {
-                    renderAdminDashboard();
+                    navigate('/admin'); // Default admin page
                 }
-            } else if (currentUser && !isAdminLoggedIn) {
+            } else if (currentUser && userProfile) {
+                // If user is logged in but on a public page, redirect to dashboard
+                if (publicPages.includes(path)) {
+                    navigate('/dashboard');
+                    return;
+                }
+                // Logged-in user routes
+                const routes = {
+                    '/dashboard': renderDashboard,
+                    '/transfer': renderTransfer,
+                };
                 (routes[path] || renderDashboard)();
             } else {
-                 (routes[path] || renderHomepage)();
+                // Public routes for logged-out users
+                const routes = {
+                    '/': renderHomepage,
+                    '/login': renderLogin,
+                    '/signup': renderSignup,
+                    '/admin-login': renderAdminLogin,
+                };
+                (routes[path] || renderHomepage)();
             }
         }
 
@@ -154,8 +168,8 @@
             if (isAdminLoggedIn) {
                  userMenu.innerHTML = `<div class="flex items-center space-x-4"><span class="font-semibold text-indigo-600">Admin Mode</span><button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
                  document.getElementById('logout-button').addEventListener('click', handleLogout);
-            } else if (currentUser) {
-                userMenu.innerHTML = `<div class="flex items-center space-x-4"><span class="font-semibold">${userProfile?.username || ''}</span><button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
+            } else if (currentUser && userProfile) {
+                userMenu.innerHTML = `<div class="flex items-center space-x-4"><span class="font-semibold">${userProfile.username}</span><button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
                 document.getElementById('logout-button').addEventListener('click', handleLogout);
             } else {
                 userMenu.innerHTML = `<div class="space-x-2"><button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">User Login</button><button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Sign Up</button></div>`;
@@ -227,7 +241,7 @@
         
         async function renderAdminDashboard() {
             const { data: users, error } = await supabaseClient.from('profiles').select('*');
-            if (error) { content.innerHTML = `<p class="text-red-500">Error fetching users: ${error.message}</p>`; return; }
+            if (error) { content.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg"><p class="font-bold">Could Not Load Users</p><p>The admin login was successful, but user data could not be fetched from the database. Please ensure a real admin account exists in Supabase and that the database security rules are correct.</p><p class="mt-2">Error: <code class="bg-red-200 text-sm p-1 rounded">${error.message}</code></p></div>`; return; }
             content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg"><h2 class="text-3xl font-bold mb-6">Admin Panel - Users</h2><div class="overflow-x-auto"><table class="min-w-full bg-white"><thead class="bg-gray-800 text-white"><tr><th class="text-left py-3 px-4">Username</th><th class="text-left py-3 px-4">Card Type</th><th class="text-left py-3 px-4">Balance</th><th class="text-left py-3 px-4">Status</th><th class="text-left py-3 px-4">Actions</th></tr></thead><tbody class="text-gray-700">${users.map(user => `<tr><td class="py-3 px-4">${user.username}</td><td class="py-3 px-4">${user.card_type}</td><td class="py-3 px-4">${user.card_type === 'Unlimited' ? '∞' : user.balance.toFixed(2)} MP</td><td class="py-3 px-4">${user.is_banned ? '<span class="text-red-500">Banned</span>' : '<span class="text-green-500">Active</span>'}</td><td class="py-3 px-4"><button onclick="navigate('/admin/user/${user.id}')" class="bg-yellow-500 text-white text-sm py-1 px-2 rounded">Edit</button></td></tr>`).join('')}</tbody></table></div></div>`;
         }
 
@@ -280,14 +294,16 @@
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
             if (email.toLowerCase() === 'mostafaalatawy@gmail.com' && password === '123456789#Osama') {
+                // Attempt to log in to Supabase to get a valid session for API calls.
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) {
-                    errorEl.textContent = "Login failed. Please ensure the admin account exists in Supabase with the correct password.";
-                } else {
-                    sessionStorage.setItem('isAdminLoggedIn', 'true');
-                    isAdminLoggedIn = true;
-                    navigate('/admin');
+                    console.error("Admin Supabase login failed:", error);
+                    // Still set the client-side flag to allow access to the admin view,
+                    // which will then show its own data-loading error.
                 }
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                isAdminLoggedIn = true;
+                navigate('/admin');
             } else {
                 errorEl.textContent = 'Invalid admin credentials.';
             }
@@ -379,12 +395,14 @@
             if (!currentUser) return;
             const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
             if (error) {
-                console.error('Error fetching profile:', error);
-                if (error.code === 'PGRST116') { await supabaseClient.auth.signOut(); navigate('/login'); }
-            } else {
-                userProfile = data;
-                if (userProfile && userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
+                console.error('CRITICAL Error fetching profile:', error);
+                content.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert"><p class="font-bold">Could Not Load Your Profile</p><p>There was a critical error fetching your user data. This is likely due to a database security rule issue.</p><p class="mt-2">Please ask the administrator to apply the latest SQL fix. Error: <code class="bg-red-200 text-sm p-1 rounded">${error.message}</code></p><button id="logout-button-error" class="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
+                document.getElementById('logout-button-error').addEventListener('click', handleLogout);
+                userProfile = null;
+                return;
             }
+            userProfile = data;
+            if (userProfile && userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
         }
 
         function formatCardNumber(num) { return num ? num.match(/.{1,4}/g).join(' ') : 'XXXX XXXX XXXX XXXX'; }
@@ -410,7 +428,7 @@
             const cardFlipper = document.getElementById('card-flipper');
             const flipButton = document.getElementById('card-flip-btn');
             if (!cardFlipper || !flipButton) return;
-            const hideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
+            const hideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
             flipButton.innerHTML = hideIcon;
             flipButton.addEventListener('click', () => cardFlipper.classList.add('is-flipped'));
             cardFlipper.addEventListener('dblclick', () => cardFlipper.classList.remove('is-flipped'));
