@@ -39,7 +39,8 @@
             transition: transform 0.8s;
             transform-style: preserve-3d;
         }
-        .card-flipper.is-flipped {
+        /* Card now flips on hover */
+        .card-container:hover .card-flipper {
             transform: rotateY(180deg);
         }
         .card-face {
@@ -124,7 +125,6 @@
             
             updateUserMenu();
 
-            // --- REVISED ROUTING LOGIC ---
             const publicPages = ['/', '/login', '/signup', '/admin-login'];
             const adminRouteMatch = path.match(/^\/admin(\/user\/.+)?$/);
 
@@ -137,22 +137,19 @@
                         renderAdminDashboard();
                     }
                 } else {
-                    navigate('/admin'); // Default admin page
+                    navigate('/admin');
                 }
             } else if (currentUser && userProfile) {
-                // If user is logged in but on a public page, redirect to dashboard
                 if (publicPages.includes(path)) {
                     navigate('/dashboard');
                     return;
                 }
-                // Logged-in user routes
                 const routes = {
                     '/dashboard': renderDashboard,
                     '/transfer': renderTransfer,
                 };
                 (routes[path] || renderDashboard)();
             } else {
-                // Public routes for logged-out users
                 const routes = {
                     '/': renderHomepage,
                     '/login': renderLogin,
@@ -215,8 +212,8 @@
                 <div class="grid md:grid-cols-2 gap-8">
                     <div>
                         <div class="relative">
-                            <div class="card-container"><div id="card-flipper" class="card-flipper"><div class="card-face ${cardClass} text-white"><div><div class="flex justify-between items-center"><h3 class="text-lg font-semibold">MRC Virtual Card</h3><span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span></div><div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div></div><div class="flex justify-between items-end mt-4"><div><p class="text-xs text-gray-200">Card Holder</p><p class="font-medium">${userProfile.username}</p></div><div><p class="text-xs text-gray-200">Expires</p><p class="font-medium">--/--</p></div></div></div><div class="card-face card-back ${cardClass} text-white"><div class="w-full h-full flex flex-col justify-center items-center"><div class="cvv-strip"></div><div class="cvv-box mt-4"><span>${userProfile.cvv}</span></div><p class="text-xs mt-2 text-gray-300">CVV</p></div></div></div></div>
-                            <button id="card-flip-btn" class="absolute top-0 right-0 -mt-2 -mr-2 bg-white p-2 rounded-full shadow-lg"></button>
+                            <div class="card-container"><div id="card-flipper" class="card-flipper"><div class="card-face ${cardClass} text-white"><div><div class="flex justify-between items-center"><h3 class="text-lg font-semibold">MRC Virtual Card</h3><span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span></div><div id="card-number-display" class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div></div><div class="flex justify-between items-end mt-4"><div><p class="text-xs text-gray-200">Card Holder</p><p class="font-medium">${userProfile.username}</p></div><div><p class="text-xs text-gray-200">Expires</p><p class="font-medium">--/--</p></div></div></div><div class="card-face card-back ${cardClass} text-white"><div class="w-full h-full flex flex-col justify-center items-center"><div class="cvv-strip"></div><div class="cvv-box mt-4"><span>${userProfile.cvv}</span></div><p class="text-xs mt-2 text-gray-300">CVV</p></div></div></div></div>
+                            <button id="card-hide-btn" class="absolute top-0 right-0 -mt-2 -mr-2 bg-white p-2 rounded-full shadow-lg"></button>
                         </div>
                         <div class="bg-white p-8 rounded-xl shadow-lg mt-8">
                             <h3 class="text-2xl font-bold mb-2">Your Balance</h3>
@@ -284,7 +281,15 @@
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) { errorEl.textContent = error.message; } else { router(); }
+            if (error) {
+                if (error.message.includes('Email not confirmed')) {
+                    errorEl.textContent = 'Login failed. Please check your email inbox for a confirmation link to activate your account.';
+                } else {
+                    errorEl.textContent = error.message;
+                }
+            } else {
+                router();
+            }
         }
         
         async function handleAdminLogin(e) {
@@ -294,16 +299,18 @@
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
             if (email.toLowerCase() === 'mostafaalatawy@gmail.com' && password === '123456789#Osama') {
-                // Attempt to log in to Supabase to get a valid session for API calls.
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) {
-                    console.error("Admin Supabase login failed:", error);
-                    // Still set the client-side flag to allow access to the admin view,
-                    // which will then show its own data-loading error.
+                    if (error.message.includes('Email not confirmed')) {
+                        errorEl.textContent = 'Admin login failed. Please check your email inbox for a confirmation link to activate the admin account in Supabase.';
+                    } else {
+                        errorEl.textContent = "Login failed. Please ensure the admin account exists in Supabase with the correct password.";
+                    }
+                } else {
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    isAdminLoggedIn = true;
+                    navigate('/admin');
                 }
-                sessionStorage.setItem('isAdminLoggedIn', 'true');
-                isAdminLoggedIn = true;
-                navigate('/admin');
             } else {
                 errorEl.textContent = 'Invalid admin credentials.';
             }
@@ -425,13 +432,31 @@
         }
 
         function setupCardInteraction() {
-            const cardFlipper = document.getElementById('card-flipper');
-            const flipButton = document.getElementById('card-flip-btn');
-            if (!cardFlipper || !flipButton) return;
-            const hideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
-            flipButton.innerHTML = hideIcon;
-            flipButton.addEventListener('click', () => cardFlipper.classList.add('is-flipped'));
-            cardFlipper.addEventListener('dblclick', () => cardFlipper.classList.remove('is-flipped'));
+            const hideButton = document.getElementById('card-hide-btn');
+            const cardNumberDisplay = document.getElementById('card-number-display');
+            if (!hideButton || !cardNumberDisplay) return;
+
+            const showIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            const hideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
+
+            let isHidden = false;
+            
+            function updateCardState() {
+                if (isHidden) {
+                    cardNumberDisplay.textContent = '**** **** **** ****';
+                    hideButton.innerHTML = showIcon;
+                } else {
+                    cardNumberDisplay.textContent = formatCardNumber(userProfile.card_number);
+                    hideButton.innerHTML = hideIcon;
+                }
+            }
+            
+            hideButton.addEventListener('click', () => {
+                isHidden = !isHidden;
+                updateCardState();
+            });
+
+            updateCardState(); // Set initial state
         }
         
         // --- INITIALIZATION ---
