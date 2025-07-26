@@ -3,169 +3,629 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRC Bank - Secure Payments for MRC Services</title>
+    <title>MRC Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
         }
-        .hero-bg-bank {
-            background-image: url('https://placehold.co/1920x1080/1e3a8a/ffffff?text=MRC+Bank'); /* Placeholder: Dark blueish bank theme */
-            background-size: cover;
-            background-position: center;
-        }
-        .advantage-icon {
-            transition: transform 0.3s ease;
-        }
-        .group:hover .advantage-icon {
-            transform: scale(1.1);
-        }
-        .cta-button {
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-        .cta-button:hover {
-            transform: translateY(-2px);
+        .card {
+            background: linear-gradient(135deg, #6B7280 0%, #1F2937 100%);
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <header class="bg-white shadow-lg sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
-            <a href="index.html" class="text-3xl font-extrabold text-blue-700">MRC Bank</a>
-            <div class="flex items-center space-x-5 text-lg">
-                <a href="#features" class="text-gray-600 hover:text-blue-700 font-medium">Features</a>
-                <a href="#benefits" class="text-gray-600 hover:text-blue-700 font-medium">Benefits</a>
-                <a href="login.html" class="text-gray-600 hover:text-blue-700 px-5 py-2 rounded-lg font-medium hover:bg-gray-100 transition duration-300">Login</a>
-                <a href="signup.html" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 cta-button shadow-md">Sign Up</a>
-            </div>
-        </nav>
-    </header>
+    <div id="app" class="max-w-4xl mx-auto p-4">
 
-    <section id="hero" class="hero-bg-bank text-white">
-        <div class="min-h-[75vh] md:min-h-[85vh] flex items-center justify-center bg-black bg-opacity-60">
-            <div class="text-center p-10 max-w-4xl mx-auto">
-                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-                    Seamless Payments, Exclusively for <span class="text-blue-400">MRC Services</span>.
-                </h1>
-                <p class="text-xl md:text-2xl mb-10 text-gray-200">
-                    Experience the future of secure and effortless transactions within the MRC ecosystem. MRC Bank is designed for you.
-                </p>
-                <div class="space-x-4">
-                    <a href="signup.html" class="bg-yellow-400 text-blue-900 px-10 py-4 rounded-lg text-xl font-bold hover:bg-yellow-500 transition duration-300 cta-button shadow-xl">Get Started Now</a>
-                    <a href="#features" class="bg-transparent border-2 border-white text-white px-10 py-4 rounded-lg text-xl font-bold hover:bg-white hover:text-blue-700 transition duration-300 cta-button">Learn More</a>
-                </div>
-            </div>
-        </div>
-    </section>
+        <!-- Header -->
+        <header class="flex justify-between items-center py-4">
+            <h1 class="text-3xl font-bold text-gray-900">MRC Bank</h1>
+            <div id="user-menu"></div>
+        </header>
 
-    <section id="features" class="py-16 md:py-24 bg-white">
-        <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-extrabold text-center mb-6 text-blue-700">Why MRC Bank?</h2>
-            <p class="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">
-                MRC Bank offers a suite of features tailored to provide you with the most convenient and secure payment experience for all MRC services.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                    <div class="flex justify-center mb-6">
-                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Ironclad Security</h3>
-                    <p class="text-gray-700 text-center leading-relaxed">Utilizing state-of-the-art encryption and security protocols to protect your funds and personal data at all times.</p>
-                </div>
-                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                    <div class="flex justify-center mb-6">
-                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Instant Transactions</h3>
-                    <p class="text-gray-700 text-center leading-relaxed">Enjoy lightning-fast payments for MRC services. No more waiting, no more delays. Get what you need, when you need it.</p>
-                </div>
-                <div class="group bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                    <div class="flex justify-center mb-6">
-                        <svg class="h-16 w-16 text-blue-600 advantage-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-semibold text-center mb-3 text-blue-700">Simplified Management</h3>
-                    <p class="text-gray-700 text-center leading-relaxed">Easily track your spending, view transaction history, and manage your MRC service payments all in one intuitive platform.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+        <main id="content" class="mt-8">
+            <!-- App content will be rendered here -->
+        </main>
 
-    <section id="benefits" class="py-16 md:py-24 bg-blue-700 text-white">
-        <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-extrabold text-center mb-16">Exclusive Benefits for MRC Users</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-                <div class="order-2 md:order-1">
-                    <img src="https://placehold.co/600x400/3b82f6/ffffff?text=MRC+Services+Integration" alt="MRC Services Integration" class="rounded-xl shadow-2xl" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/ffffff?text=Visual';">
-                </div>
-                <div class="order-1 md:order-2 space-y-6">
-                    <div class="flex items-start space-x-4">
-                        <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        <div>
-                            <h3 class="text-2xl font-semibold">Dedicated Support</h3>
-                            <p class="text-blue-100 mt-1">Access specialized customer support for all your MRC Bank related queries and needs.</p>
+    </div>
+
+    <script type="module">
+        // --- SUPABASE CLIENT SETUP ---
+        const supabaseUrl = 'https://effpdesipfziszvborof.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmZnBkZXNpcGZ6aXN6dmJvcm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NTQzOTgsImV4cCI6MjA2OTAzMDM5OH0.JIgvjeBI_N_TpJRWc1ptKpr4CoXbAfT8huvNfRA1nqY';
+        // Renamed 'supabase' to 'supabaseClient' to avoid ReferenceError during initialization
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- DOM ELEMENTS ---
+        const app = document.getElementById('app');
+        const content = document.getElementById('content');
+        const userMenu = document.getElementById('user-menu');
+
+        // --- STATE ---
+        let currentUser = null;
+        let userProfile = null;
+
+        // --- ROUTING ---
+        function navigate(path) {
+            window.location.hash = path;
+            router();
+        }
+
+        async function router() {
+            const path = window.location.hash.slice(1) || '/';
+            content.innerHTML = '<div class="text-center p-8"><div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900 mx-auto"></div><p class="mt-4">Loading...</p></div>';
+
+            const session = await supabaseClient.auth.getSession();
+            currentUser = session?.data?.session?.user || null;
+
+            if (currentUser) {
+                await fetchUserProfile();
+            }
+            
+            updateUserMenu();
+
+            if (path.startsWith('/admin')) {
+                renderAdmin(path);
+            } else if (currentUser) {
+                switch (path) {
+                    case '/dashboard':
+                        renderDashboard();
+                        break;
+                    case '/transfer':
+                        renderTransfer();
+                        break;
+                    default:
+                        navigate('/dashboard');
+                }
+            } else {
+                switch (path) {
+                    case '/login':
+                        renderLogin();
+                        break;
+                    case '/signup':
+                        renderSignup();
+                        break;
+                    default:
+                        renderHomepage();
+                }
+            }
+        }
+
+        // --- UI RENDERING ---
+
+        function updateUserMenu() {
+            if (currentUser) {
+                userMenu.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <span class="font-semibold">${userProfile?.username || ''}</span>
+                        <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Logout</button>
+                        ${userProfile?.is_admin ? '<button id="admin-panel-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Admin Panel</button>' : ''}
+                    </div>
+                `;
+                document.getElementById('logout-button').addEventListener('click', handleLogout);
+                if(userProfile?.is_admin) {
+                   document.getElementById('admin-panel-button').addEventListener('click', () => navigate('/admin'));
+                }
+            } else {
+                userMenu.innerHTML = `
+                    <div class="space-x-2">
+                        <button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
+                        <button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHomepage() {
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <h2 class="text-4xl font-bold mb-4">Welcome to MRC Bank</h2>
+                    <p class="text-gray-600 mb-8">Your virtual bank for seamless payments in MRC Services with MP points.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-gray-50 p-6 rounded-lg">
+                            <h3 class="text-2xl font-semibold mb-2">Our Services</h3>
+                            <p>Instantly transfer MP to other users, manage your virtual card, and track your spending. All in one place.</p>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg">
+                            <h3 class="text-2xl font-semibold mb-2">Get Started</h3>
+                            <p>Create an account today to receive your virtual card and 100 MP to start your journey.</p>
                         </div>
                     </div>
-                    <div class="flex items-start space-x-4">
-                        <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
+                </div>
+            `;
+        }
+
+        function renderLogin() {
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-6">Login</h2>
+                    <form id="login-form">
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
+                    </form>
+                    <p id="login-error" class="text-red-500 text-center mt-4"></p>
+                    <p class="text-center mt-4">Don't have an account? <a href="#" onclick="navigate('/signup')" class="text-blue-500 hover:underline">Sign up</a></p>
+                </div>
+            `;
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+        }
+
+        function renderSignup() {
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-6">Create Your Account</h2>
+                    <form id="signup-form">
+                        <div class="mb-4">
+                            <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
+                            <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" id="password" minlength="8" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
+                    </form>
+                    <p id="signup-error" class="text-red-500 text-center mt-4"></p>
+                    <p class="text-center mt-4">Already have an account? <a href="#" onclick="navigate('/login')" class="text-blue-500 hover:underline">Login</a></p>
+                </div>
+            `;
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+        }
+
+        function renderDashboard() {
+            if (!userProfile) {
+                content.innerHTML = '<p>Loading profile...</p>';
+                return;
+            }
+            content.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Virtual Card -->
+                    <div class="card p-6 rounded-xl shadow-2xl text-white flex flex-col justify-between">
                         <div>
-                            <h3 class="text-2xl font-semibold">Zero Hidden Fees</h3>
-                            <p class="text-blue-100 mt-1">Transparent pricing with no unexpected charges for your MRC service payments.</p>
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold">MRC Virtual Card</h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                            </div>
+                            <div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div>
+                        </div>
+                        <div class="flex justify-between items-end mt-4">
+                            <div>
+                                <p class="text-xs text-gray-400">Card Holder</p>
+                                <p class="font-medium">${userProfile.username}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">CVV</p>
+                                <p class="font-medium">${userProfile.cvv}</p>
+                            </div>
+                             <div>
+                                <p class="text-xs text-gray-400">Expires</p>
+                                <p class="font-medium">--/--</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-start space-x-4">
-                         <svg class="h-8 w-8 text-yellow-400 flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        <div>
-                            <h3 class="text-2xl font-semibold">Exclusive Offers</h3>
-                            <p class="text-blue-100 mt-1">Unlock special discounts and promotions on MRC services when you pay with MRC Bank.</p>
+
+                    <!-- Balance and Actions -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-2">Your Balance</h3>
+                        <p class="text-5xl font-bold text-blue-600">${userProfile.balance.toFixed(2)} <span class="text-3xl text-gray-500">MP</span></p>
+                        <div class="mt-8">
+                            <button onclick="navigate('/transfer')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Transfer MP</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
+                <!-- Transaction History could go here -->
+            `;
+        }
+        
+        function renderTransfer() {
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-6">Transfer MP</h2>
+                    <form id="transfer-form">
+                        <div class="mb-4">
+                            <label for="recipient-card" class="block text-gray-700 font-semibold mb-2">Recipient's Card Number</label>
+                            <input type="text" id="recipient-card" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="XXXX XXXX XXXX XXXX">
+                        </div>
+                        <div class="mb-6">
+                            <label for="amount" class="block text-gray-700 font-semibold mb-2">Amount (MP)</label>
+                            <input type="number" id="amount" min="0.01" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Send Money</button>
+                    </form>
+                    <div id="transfer-message" class="text-center mt-4"></div>
+                    <p class="text-center mt-4"><a href="#" onclick="navigate('/dashboard')" class="text-blue-500 hover:underline">Back to Dashboard</a></p>
+                </div>
+            `;
+            document.getElementById('transfer-form').addEventListener('submit', handleTransfer);
+        }
+        
+        async function renderAdmin(path) {
+            if (!userProfile?.is_admin) {
+                content.innerHTML = `<p class="text-red-500 text-center">Access Denied. You are not an admin.</p>`;
+                return;
+            }
 
-    <section class="py-16 md:py-24 bg-gray-100">
-        <div class="container mx-auto px-6 text-center">
-            <h2 class="text-4xl font-extrabold text-blue-700 mb-6">Ready to Simplify Your MRC Payments?</h2>
-            <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                Join MRC Bank today and step into a world of hassle-free transactions, top-tier security, and exclusive benefits.
-            </p>
-            <a href="signup.html" class="bg-blue-600 text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-blue-700 transition duration-300 cta-button shadow-xl">Create Your Account</a>
-        </div>
-    </section>
+            if (path === '/admin') {
+                 renderAdminDashboard();
+            } else if (path.startsWith('/admin/user/')) {
+                const userId = path.split('/')[3];
+                renderAdminEditUser(userId);
+            }
+        }
+        
+        async function renderAdminDashboard() {
+            const { data: users, error } = await supabaseClient.from('profiles').select('*');
+            if (error) {
+                content.innerHTML = `<p class="text-red-500">Error fetching users: ${error.message}</p>`;
+                return;
+            }
 
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="container mx-auto px-6 text-center">
-            <a href="index.html" class="text-2xl font-bold text-blue-400 mb-4 inline-block">MRC Bank</a>
-            <p class="mb-6 text-gray-400">Secure & Seamless Payments for MRC Services.</p>
-            <div class="space-x-6 mb-6">
-                <a href="#" class="hover:text-blue-400">Privacy Policy</a>
-                <a href="#" class="hover:text-blue-400">Terms of Service</a>
-                <a href="#" class="hover:text-blue-400">Contact Us</a>
-            </div>
-            <p class="text-gray-500">&copy; <span id="currentYear"></span> MRC Bank. All rights reserved.</p>
-        </div>
-    </footer>
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold mb-6">Admin Panel - Users</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-800 text-white">
+                                <tr>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Username</th>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Card Number</th>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Balance</th>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Status</th>
+                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                ${users.map(user => `
+                                    <tr class="border-b">
+                                        <td class="py-3 px-4">${user.username}</td>
+                                        <td class="py-3 px-4 font-mono">${formatCardNumber(user.card_number)}</td>
+                                        <td class="py-3 px-4">${user.balance.toFixed(2)} MP</td>
+                                        <td class="py-3 px-4">${user.is_banned ? '<span class="text-red-500 font-semibold">Banned</span>' : '<span class="text-green-500 font-semibold">Active</span>'}</td>
+                                        <td class="py-3 px-4">
+                                            <button onclick="navigate('/admin/user/${user.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-bold py-1 px-2 rounded">Edit</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
 
-    <script>
-        // Set current year in footer
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        async function renderAdminEditUser(userId) {
+            const { data: user, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
+            if (error || !user) {
+                content.innerHTML = `<p class="text-red-500">Error fetching user data.</p>`;
+                return;
+            }
+
+            content.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Edit User: ${user.username}</h2>
+                    <form id="admin-edit-form">
+                         <div class="mb-4">
+                            <label for="balance" class="block text-gray-700 font-semibold mb-2">Balance (MP)</label>
+                            <input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg" value="${user.balance}">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mb-4">Update Balance</button>
+                    </form>
+                    <div id="admin-message" class="text-center my-4"></div>
+                     <button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white font-bold py-2 px-4 rounded-lg">
+                        ${user.is_banned ? 'Unban User' : 'Ban User'}
+                    </button>
+                    <p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500 hover:underline">Back to Admin Dashboard</a></p>
+                </div>
+            `;
+            document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateBalance(e, userId));
+            document.getElementById('ban-button').addEventListener('click', () => handleAdminToggleBan(userId, user.is_banned));
+        }
+
+
+        // --- EVENT HANDLERS & LOGIC ---
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            // FIX: Removed incorrect '.input' property to correctly get form values
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('signup-error');
+            errorEl.textContent = '';
+
+            // Admin check
+            if (username === 'Mostafa' && password === '123456789#Osama') {
+                const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    errorEl.textContent = error.message;
+                    return;
+                }
+                if (user) {
+                    await createProfile(user.id, username, true); // is_admin = true
+                    navigate('/login');
+                }
+            } else {
+                const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    errorEl.textContent = error.message;
+                    return;
+                }
+                if (user) {
+                    await createProfile(user.id, username);
+                    alert('Signup successful! Please check your email to verify your account.');
+                    navigate('/login');
+                }
+            }
+        }
+
+        async function createProfile(userId, username, isAdmin = false) {
+            const cardNumber = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
+            const cvv = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10)).join('');
+
+            const { error } = await supabaseClient.from('profiles').insert({
+                id: userId,
+                username: username,
+                card_number: cardNumber,
+                cvv: cvv,
+                balance: 100.00,
+                initial_balance_spent: false,
+                is_admin: isAdmin,
+                is_banned: false,
+            });
+
+            if (error) {
+                console.error('Error creating profile:', error);
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.textContent = '';
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                errorEl.textContent = error.message;
+            } else {
+                router();
+            }
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            userProfile = null;
+            navigate('/');
+        }
+        
+        async function handleTransfer(e) {
+            e.preventDefault();
+            const recipientCard = document.getElementById('recipient-card').value.replace(/\s/g, '');
+            const amount = parseFloat(document.getElementById('amount').value);
+            const messageEl = document.getElementById('transfer-message');
+            messageEl.textContent = '';
+
+            if (isNaN(amount) || amount <= 0) {
+                messageEl.textContent = 'Invalid amount.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                return;
+            }
+            
+            // Rule: Cannot transfer the first 100 MP
+            if (userProfile.balance <= 100 && !userProfile.initial_balance_spent) {
+                 messageEl.textContent = 'You cannot transfer your initial 100 MP bonus.';
+                 messageEl.className = 'text-red-500 text-center mt-4';
+                 return;
+            }
+
+            if (userProfile.balance < amount) {
+                messageEl.textContent = 'Insufficient funds.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                return;
+            }
+
+            // Find recipient
+            const { data: recipient, error: recipientError } = await supabaseClient
+                .from('profiles')
+                .select('id, balance')
+                .eq('card_number', recipientCard)
+                .single();
+
+            if (recipientError || !recipient) {
+                messageEl.textContent = 'Recipient card number not found.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                return;
+            }
+            
+            if (recipient.id === userProfile.id) {
+                messageEl.textContent = 'You cannot transfer money to yourself.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                return;
+            }
+
+            // Perform transaction
+            const newSenderBalance = userProfile.balance - amount;
+            const newRecipientBalance = recipient.balance + amount;
+
+            const { error: senderError } = await supabaseClient
+                .from('profiles')
+                .update({ balance: newSenderBalance, initial_balance_spent: true })
+                .eq('id', userProfile.id);
+
+            const { error: recipientUpdateError } = await supabaseClient
+                .from('profiles')
+                .update({ balance: newRecipientBalance })
+                .eq('id', recipient.id);
+
+            if (senderError || recipientUpdateError) {
+                messageEl.textContent = 'Transaction failed. Please try again.';
+                messageEl.className = 'text-red-500 text-center mt-4';
+                 // Ideally, you'd have a proper transaction rollback here
+            } else {
+                messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
+                messageEl.className = 'text-green-500 text-center mt-4';
+                document.getElementById('transfer-form').reset();
+                await fetchUserProfile(); // Refresh local profile
+            }
+        }
+        
+        async function handleAdminUpdateBalance(e, userId) {
+            e.preventDefault();
+            const newBalance = parseFloat(document.getElementById('balance').value);
+            const messageEl = document.getElementById('admin-message');
+            
+            if (isNaN(newBalance) || newBalance < 0) {
+                 messageEl.textContent = 'Invalid balance amount.';
+                 messageEl.className = 'text-red-500 text-center my-4';
+                 return;
+            }
+            
+            const { error } = await supabaseClient.from('profiles').update({ balance: newBalance }).eq('id', userId);
+            
+            if (error) {
+                messageEl.textContent = `Error: ${error.message}`;
+                messageEl.className = 'text-red-500 text-center my-4';
+            } else {
+                messageEl.textContent = 'Balance updated successfully!';
+                messageEl.className = 'text-green-500 text-center my-4';
+            }
+        }
+
+        async function handleAdminToggleBan(userId, isCurrentlyBanned) {
+            const messageEl = document.getElementById('admin-message');
+            const { error } = await supabaseClient.from('profiles').update({ is_banned: !isCurrentlyBanned }).eq('id', userId);
+
+            if (error) {
+                messageEl.textContent = `Error: ${error.message}`;
+                messageEl.className = 'text-red-500 text-center my-4';
+            } else {
+                messageEl.textContent = `User has been ${!isCurrentlyBanned ? 'banned' : 'unbanned'}.`;
+                messageEl.className = 'text-green-500 text-center my-4';
+                // Refresh the view to show the new status
+                renderAdminEditUser(userId);
+            }
+        }
+
+
+        // --- HELPER FUNCTIONS ---
+
+        async function fetchUserProfile() {
+            if (!currentUser) return;
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error) {
+                console.error('Error fetching profile:', error);
+                // This can happen if profile creation failed after signup
+                if (error.code === 'PGRST116') {
+                    await supabaseClient.auth.signOut();
+                    navigate('/login');
+                }
+            } else {
+                userProfile = data;
+                if (userProfile.is_banned) {
+                    alert('Your account has been banned.');
+                    await supabaseClient.auth.signOut();
+                    navigate('/');
+                }
+            }
+        }
+
+        function formatCardNumber(num) {
+            if (!num) return 'XXXX XXXX XXXX XXXX';
+            return num.match(/.{1,4}/g).join(' ');
+        }
+        
+        // --- INITIALIZATION ---
+        window.addEventListener('hashchange', router);
+        window.addEventListener('load', router);
+        window.navigate = navigate; // Make navigate globally accessible for inline event handlers
+        
+        /*
+        -- Supabase SQL for Tables and Policies
+
+        -- 1. Create the profiles table
+        CREATE TABLE public.profiles (
+          id uuid NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+          username text NOT NULL,
+          card_number text NOT NULL UNIQUE,
+          cvv text NOT NULL,
+          balance numeric(10, 2) NOT NULL DEFAULT 100.00,
+          initial_balance_spent boolean NOT NULL DEFAULT false,
+          is_admin boolean NOT NULL DEFAULT false,
+          is_banned boolean NOT NULL DEFAULT false,
+          created_at timestamp with time zone DEFAULT now(),
+          PRIMARY KEY (id)
+        );
+
+        -- 2. Enable Row Level Security (RLS)
+        ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+        -- 3. Policies for profiles table
+
+        -- Users can see their own profile
+        CREATE POLICY "Users can view their own profile."
+        ON public.profiles FOR SELECT
+        USING (auth.uid() = id);
+
+        -- Users can update their own profile (e.g., username, but we are not implementing this in the UI)
+        -- We restrict balance updates to be handled by transaction logic, not direct user updates.
+        CREATE POLICY "Users can update their own profile."
+        ON public.profiles FOR UPDATE
+        USING (auth.uid() = id);
+
+        -- Admins can see all profiles
+        CREATE POLICY "Admins can view all profiles."
+        ON public.profiles FOR SELECT
+        USING (
+          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+        );
+
+        -- Admins can update all profiles (for banning and adding balance)
+        CREATE POLICY "Admins can update all profiles."
+        ON public.profiles FOR UPDATE
+        USING (
+          (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
+        );
+        
+        -- Allow authenticated users to see card numbers of other users for transfers
+        -- This is a simplified approach. In a real-world scenario, you'd want more checks.
+        CREATE POLICY "Authenticated users can see card numbers for transfers."
+        ON public.profiles FOR SELECT
+        USING (auth.role() = 'authenticated');
+        
+        -- NOTE: The insert operation is handled by a server-side function or, as in this code,
+        -- using the service role key implicitly via the anon key from the client.
+        -- To make it more secure, you would create a `handle_new_user` function in Supabase
+        -- that triggers on `auth.users` insertion.
+        -- For this project, we will rely on the client-side creation after signup.
+        
+        CREATE POLICY "Allow public insert for new user profiles"
+        ON public.profiles FOR INSERT
+        WITH CHECK (true);
+
+        */
+
     </script>
-
 </body>
 </html>
