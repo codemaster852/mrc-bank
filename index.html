@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MRC Bank</title>
+    <!-- Add a placeholder favicon to prevent 404 errors in the console -->
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,7 +39,6 @@
             transition: transform 0.8s;
             transform-style: preserve-3d;
         }
-        /* New class to control the flip */
         .card-flipper.is-flipped {
             transform: rotateY(180deg);
         }
@@ -51,7 +52,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5rem; /* p-6 */
+            padding: 1.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .card-back {
@@ -80,17 +81,11 @@
 <body class="bg-gray-100 text-gray-800">
 
     <div id="app" class="max-w-4xl mx-auto p-4">
-
-        <!-- Header -->
         <header class="flex justify-between items-center py-4">
             <h1 class="text-3xl font-bold text-gray-900">MRC Bank</h1>
             <div id="user-menu"></div>
         </header>
-
-        <main id="content" class="mt-8">
-            <!-- App content will be rendered here -->
-        </main>
-
+        <main id="content" class="mt-8"></main>
     </div>
 
     <script type="module">
@@ -99,12 +94,9 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmZnBkZXNpcGZ6aXN6dmJvcm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NTQzOTgsImV4cCI6MjA2OTAzMDM5OH0.JIgvjeBI_N_TpJRWc1ptKpr4CoXbAfT8huvNfRA1nqY';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // --- DOM ELEMENTS ---
-        const app = document.getElementById('app');
+        // --- DOM & STATE ---
         const content = document.getElementById('content');
         const userMenu = document.getElementById('user-menu');
-
-        // --- STATE ---
         let currentUser = null;
         let userProfile = null;
         let isAdminLoggedIn = false;
@@ -122,16 +114,12 @@
             const session = await supabaseClient.auth.getSession();
             currentUser = session?.data?.session?.user || null;
             
-            // Check for client-side admin session
             if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
                  isAdminLoggedIn = true;
-                 // Ensure a Supabase session is also active for API calls
                  if (!currentUser) {
-                    // Attempt to log in the real admin account in the background
-                    // This is necessary for the admin panel to fetch data
                     await supabaseClient.auth.signInWithPassword({
                         email: 'mostafaalatawy@gmail.com',
-                        password: '123456789#Osama' // This must be the correct password for the Supabase account
+                        password: '123456789#Osama'
                     });
                      const newSession = await supabaseClient.auth.getSession();
                      currentUser = newSession?.data?.session?.user || null;
@@ -140,373 +128,128 @@
                 isAdminLoggedIn = false;
             }
 
-
             if (currentUser && !isAdminLoggedIn) {
                 await fetchUserProfile();
+                await handleDailyLogin(); // Check for daily bonus
             }
             
             updateUserMenu();
 
-            if (path.startsWith('/admin-login')) {
-                 renderAdminLogin();
-            } else if (path.startsWith('/admin')) {
-                if (isAdminLoggedIn) {
-                    renderAdmin(path);
+            const routes = {
+                '/admin-login': renderAdminLogin,
+                '/login': renderLogin,
+                '/signup': renderSignup,
+                '/dashboard': renderDashboard,
+                '/transfer': renderTransfer,
+                '/admin': renderAdminDashboard,
+            };
+
+            const adminRouteMatch = path.match(/^\/admin\/user\/(.+)$/);
+
+            if (isAdminLoggedIn && path.startsWith('/admin')) {
+                if (adminRouteMatch) {
+                    renderAdminEditUser(adminRouteMatch[1]);
                 } else {
-                    navigate('/admin-login');
+                    renderAdminDashboard();
                 }
-            } else if (currentUser) {
-                switch (path) {
-                    case '/dashboard':
-                        renderDashboard();
-                        break;
-                    case '/transfer':
-                        renderTransfer();
-                        break;
-                    default:
-                        navigate('/dashboard');
-                }
+            } else if (currentUser && !isAdminLoggedIn) {
+                (routes[path] || renderDashboard)();
             } else {
-                switch (path) {
-                    case '/login':
-                        renderLogin();
-                        break;
-                    case '/signup':
-                        renderSignup();
-                        break;
-                    default:
-                        renderHomepage();
-                }
+                 (routes[path] || renderHomepage)();
             }
         }
 
         // --- UI RENDERING ---
-
         function updateUserMenu() {
             if (isAdminLoggedIn) {
-                 userMenu.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <span class="font-semibold text-indigo-600">Admin Mode</span>
-                        <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Logout</button>
-                    </div>
-                `;
-                document.getElementById('logout-button').addEventListener('click', handleLogout);
-            }
-            else if (currentUser) {
-                userMenu.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <span class="font-semibold">${userProfile?.username || ''}</span>
-                        <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Logout</button>
-                    </div>
-                `;
+                 userMenu.innerHTML = `<div class="flex items-center space-x-4"><span class="font-semibold text-indigo-600">Admin Mode</span><button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
+                 document.getElementById('logout-button').addEventListener('click', handleLogout);
+            } else if (currentUser) {
+                userMenu.innerHTML = `<div class="flex items-center space-x-4"><span class="font-semibold">${userProfile?.username || ''}</span><button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Logout</button></div>`;
                 document.getElementById('logout-button').addEventListener('click', handleLogout);
             } else {
-                userMenu.innerHTML = `
-                    <div class="space-x-2">
-                        <button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">User Login</button>
-                        <button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up</button>
-                    </div>
-                `;
+                userMenu.innerHTML = `<div class="space-x-2"><button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">User Login</button><button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Sign Up</button></div>`;
             }
         }
 
         function renderHomepage() {
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
-                    <h2 class="text-4xl font-bold mb-4">Welcome to MRC Bank</h2>
-                    <p class="text-gray-600 mb-8">Your virtual bank for seamless payments in MRC Services with MP points.</p>
-                    <div class="grid md:grid-cols-3 gap-8">
-                        <div class="bg-gray-50 p-6 rounded-lg flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-2xl font-semibold mb-2">Our Services</h3>
-                                <p>Instantly transfer MP to other users, manage your virtual card, and track your spending. All in one place.</p>
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 p-6 rounded-lg flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-2xl font-semibold mb-2">Get Started</h3>
-                                <p>Create an account today to receive your virtual card and 100 MP to start your journey.</p>
-                            </div>
-                            <button onclick="navigate('/signup')" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Sign Up Now</button>
-                        </div>
-                        <div class="bg-gray-50 p-6 rounded-lg flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-2xl font-semibold mb-2">Admin Panel</h3>
-                                <p>Admins can log in here to manage users, update balances, and oversee the platform.</p>
-                            </div>
-                             <button onclick="navigate('/admin-login')" class="mt-4 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Admin Login</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg text-center"><h2 class="text-4xl font-bold mb-4">Welcome to MRC Bank</h2><p class="text-gray-600 mb-8">Your virtual bank for seamless payments in MRC Services with MP points.</p><div class="grid md:grid-cols-3 gap-8"><div class="bg-gray-50 p-6 rounded-lg"><h3>Our Services</h3><p>Instantly transfer MP, manage your card, and track your spending.</p></div><div class="bg-gray-50 p-6 rounded-lg"><h3>Get Started</h3><p>Create an account to receive your virtual card and 100 MP.</p><button onclick="navigate('/signup')" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Sign Up Now</button></div><div class="bg-gray-50 p-6 rounded-lg"><h3>Admin Panel</h3><p>Admins can log in here to manage the platform.</p><button onclick="navigate('/admin-login')" class="mt-4 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg">Admin Login</button></div></div></div>`;
         }
 
         function renderLogin() {
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
-                    <h2 class="text-3xl font-bold text-center mb-6">User Login</h2>
-                    <form id="login-form">
-                        <div class="mb-4">
-                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-6">
-                            <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
-                            <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
-                    </form>
-                    <p id="login-error" class="text-red-500 text-center mt-4"></p>
-                    <p class="text-center mt-4">Don't have an account? <a href="#" onclick="navigate('/signup')" class="text-blue-500 hover:underline">Sign up</a></p>
-                </div>
-            `;
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto"><h2 class="text-3xl font-bold text-center mb-6">User Login</h2><form id="login-form"><div class="mb-4"><label for="email" class="block text-gray-700">Email</label><input type="email" id="email" class="w-full px-4 py-2 border rounded-lg" required></div><div class="mb-6"><label for="password" class="block text-gray-700">Password</label><input type="password" id="password" class="w-full px-4 py-2 border rounded-lg" required></div><button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Login</button></form><p id="login-error" class="text-red-500 text-center mt-4"></p><p class="text-center mt-4">Don't have an account? <a href="#" onclick="navigate('/signup')" class="text-blue-500">Sign up</a></p></div>`;
             document.getElementById('login-form').addEventListener('submit', handleLogin);
         }
         
         function renderAdminLogin() {
-             content.innerHTML = `
-                <div class="bg-gray-800 p-8 rounded-xl shadow-lg max-w-md mx-auto">
-                    <h2 class="text-3xl font-bold text-center mb-6 text-white">Admin Login</h2>
-                    <form id="admin-login-form">
-                        <div class="mb-4">
-                            <label for="email" class="block text-gray-300 font-semibold mb-2">Admin Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                        </div>
-                        <div class="mb-6">
-                            <label for="password" class="block text-gray-300 font-semibold mb-2">Password</label>
-                            <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                        </div>
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Login</button>
-                    </form>
-                    <p id="login-error" class="text-red-400 text-center mt-4"></p>
-                    <p class="text-center mt-4"><a href="#" onclick="navigate('/login')" class="text-indigo-400 hover:underline">Not an admin? Go to User Login</a></p>
-                </div>
-            `;
+             content.innerHTML = `<div class="bg-gray-800 p-8 rounded-xl shadow-lg max-w-md mx-auto"><h2 class="text-3xl font-bold text-center mb-6 text-white">Admin Login</h2><form id="admin-login-form"><div class="mb-4"><label for="email" class="block text-gray-300">Admin Email</label><input type="email" id="email" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white" required></div><div class="mb-6"><label for="password" class="block text-gray-300">Password</label><input type="password" id="password" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-white" required></div><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Login</button></form><p id="login-error" class="text-red-400 text-center mt-4"></p><p class="text-center mt-4"><a href="#" onclick="navigate('/login')" class="text-indigo-400">Not an admin?</a></p></div>`;
             document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
         }
 
         function renderSignup() {
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
-                    <h2 class="text-3xl font-bold text-center mb-6">Create Your Account</h2>
-                    <form id="signup-form">
-                        <div class="mb-4">
-                            <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
-                            <p class="text-sm text-gray-500 mb-2">This will be shown on your card, so please write your real name.</p>
-                            <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                        </div>
-                        <div class="mb-6">
-                            <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
-                            <input type="password" id="password" minlength="8" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                        </div>
-
-                        <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
-                            <h4 class="font-semibold text-gray-800 mb-2">Terms and Policies</h4>
-                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                <li>If you write false data, your account will be banned.</li>
-                                <li>If you transfer money from your other accounts to your main account, all your accounts will get banned.</li>
-                            </ul>
-                            <div class="mt-4 flex items-center">
-                                <input type="checkbox" id="terms" class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                                <label for="terms" class="ml-2 block text-sm text-gray-900">I have read and agree to the terms and policies.</label>
-                            </div>
-                        </div>
-
-                        <button type="submit" id="signup-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:bg-gray-400" disabled>Sign Up</button>
-                    </form>
-                    <p id="signup-error" class="text-red-500 text-center mt-4"></p>
-                    <p class="text-center mt-4">Already have an account? <a href="#" onclick="navigate('/login')" class="text-blue-500 hover:underline">Login</a></p>
-                </div>
-            `;
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto"><h2 class="text-3xl font-bold text-center mb-6">Create Your Account</h2><form id="signup-form"><div class="mb-4"><label for="username" class="block text-gray-700">Username</label><p class="text-sm text-gray-500 mb-2">This will be shown on your card.</p><input type="text" id="username" class="w-full px-4 py-2 border rounded-lg" required></div><div class="mb-4"><label for="email" class="block text-gray-700">Email</label><input type="email" id="email" class="w-full px-4 py-2 border rounded-lg" required></div><div class="mb-6"><label for="password" class="block text-gray-700">Password</label><input type="password" id="password" minlength="8" class="w-full px-4 py-2 border rounded-lg" required></div><div class="mb-6 bg-gray-50 p-4 rounded-lg border"><h4 class="font-semibold">Terms and Policies</h4><ul class="list-disc list-inside text-sm text-gray-600 space-y-1"><li>If you write false data, your account will be banned.</li><li>Transferring money between your own accounts will result in a ban.</li></ul><div class="mt-4 flex items-center"><input type="checkbox" id="terms" class="h-4 w-4"><label for="terms" class="ml-2">I agree to the terms.</label></div></div><button type="submit" id="signup-button" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-400" disabled>Sign Up</button></form><p id="signup-error" class="text-red-500 text-center mt-4"></p><p class="text-center mt-4">Have an account? <a href="#" onclick="navigate('/login')" class="text-blue-500">Login</a></p></div>`;
             document.getElementById('signup-form').addEventListener('submit', handleSignup);
             document.getElementById('terms').addEventListener('change', (e) => {
                 document.getElementById('signup-button').disabled = !e.target.checked;
             });
         }
 
-        function renderDashboard() {
-            if (!userProfile) {
-                content.innerHTML = '<p>Loading profile...</p>';
-                return;
-            }
+        async function renderDashboard() {
+            if (!userProfile) { content.innerHTML = '<p>Loading profile...</p>'; return; }
+            
+            const { data: transactions, error } = await supabaseClient
+                .from('transactions')
+                .select('*')
+                .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (error) { console.error("Error fetching transactions:", error); }
+
             const cardClass = `card-${userProfile.card_type?.toLowerCase() || 'platinum'}`;
             content.innerHTML = `
                 <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Virtual Card -->
-                    <div class="relative">
-                        <div class="card-container">
-                            <div id="card-flipper" class="card-flipper">
-                                <!-- Card Front -->
-                                <div class="card-face ${cardClass} text-white">
-                                    <div>
-                                        <div class="flex justify-between items-center">
-                                            <h3 class="text-lg font-semibold">MRC Virtual Card</h3>
-                                            <span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span>
-                                        </div>
-                                        <div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div>
-                                    </div>
-                                    <div class="flex justify-between items-end mt-4">
-                                        <div>
-                                            <p class="text-xs text-gray-200">Card Holder</p>
-                                            <p class="font-medium">${userProfile.username}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-200">Expires</p>
-                                            <p class="font-medium">--/--</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Card Back -->
-                                <div class="card-face card-back ${cardClass} text-white">
-                                    <div class="w-full h-full flex flex-col justify-center items-center">
-                                        <div class="cvv-strip"></div>
-                                        <div class="cvv-box mt-4">
-                                            <span>${userProfile.cvv}</span>
-                                        </div>
-                                        <p class="text-xs mt-2 text-gray-300">CVV</p>
-                                    </div>
-                                </div>
-                            </div>
+                    <div>
+                        <div class="relative">
+                            <div class="card-container"><div id="card-flipper" class="card-flipper"><div class="card-face ${cardClass} text-white"><div><div class="flex justify-between items-center"><h3 class="text-lg font-semibold">MRC Virtual Card</h3><span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span></div><div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div></div><div class="flex justify-between items-end mt-4"><div><p class="text-xs text-gray-200">Card Holder</p><p class="font-medium">${userProfile.username}</p></div><div><p class="text-xs text-gray-200">Expires</p><p class="font-medium">--/--</p></div></div></div><div class="card-face card-back ${cardClass} text-white"><div class="w-full h-full flex flex-col justify-center items-center"><div class="cvv-strip"></div><div class="cvv-box mt-4"><span>${userProfile.cvv}</span></div><p class="text-xs mt-2 text-gray-300">CVV</p></div></div></div></div>
+                            <button id="card-flip-btn" class="absolute top-0 right-0 -mt-2 -mr-2 bg-white p-2 rounded-full shadow-lg"></button>
                         </div>
-                        <button id="card-flip-btn" class="absolute top-0 right-0 -mt-2 -mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-gray-900 transition">
-                            <!-- SVG icon will be injected here -->
-                        </button>
+                        <div class="bg-white p-8 rounded-xl shadow-lg mt-8">
+                            <h3 class="text-2xl font-bold mb-2">Your Balance</h3>
+                            <p class="text-5xl font-bold text-blue-600">${userProfile.card_type === 'Unlimited' ? '∞' : userProfile.balance.toFixed(2)} <span class="text-3xl text-gray-500">MP</span></p>
+                            <button onclick="navigate('/transfer')" class="mt-8 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">Transfer MP</button>
+                        </div>
                     </div>
-
-                    <!-- Balance and Actions -->
                     <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <h3 class="text-2xl font-bold mb-2">Your Balance</h3>
-                        <p class="text-5xl font-bold text-blue-600">${userProfile.card_type === 'Unlimited' ? '∞' : userProfile.balance.toFixed(2)} <span class="text-3xl text-gray-500">MP</span></p>
-                        <div class="mt-8">
-                            <button onclick="navigate('/transfer')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Transfer MP</button>
+                        <h3 class="text-2xl font-bold mb-4">Transaction History</h3>
+                        <div class="space-y-4">
+                            ${transactions && transactions.length > 0 ? transactions.map(tx => formatTransaction(tx)).join('') : '<p class="text-gray-500">No transactions yet.</p>'}
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
             setupCardInteraction();
         }
         
         function renderTransfer() {
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto">
-                    <h2 class="text-3xl font-bold text-center mb-6">Transfer MP</h2>
-                    <form id="transfer-form">
-                        <div class="mb-4">
-                            <label for="recipient-card" class="block text-gray-700 font-semibold mb-2">Recipient's Card Number</label>
-                            <input type="text" id="recipient-card" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="XXXX XXXX XXXX XXXX">
-                        </div>
-                        <div class="mb-6">
-                            <label for="amount" class="block text-gray-700 font-semibold mb-2">Amount (MP)</label>
-                            <input type="number" id="amount" min="0.01" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Send Money</button>
-                    </form>
-                    <div id="transfer-message" class="text-center mt-4"></div>
-                    <p class="text-center mt-4"><a href="#" onclick="navigate('/dashboard')" class="text-blue-500 hover:underline">Back to Dashboard</a></p>
-                </div>
-            `;
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-md mx-auto"><h2 class="text-3xl font-bold text-center mb-6">Transfer MP</h2><form id="transfer-form"><div class="mb-4"><label for="recipient-card" class="block text-gray-700">Recipient's Card Number</label><input type="text" id="recipient-card" class="w-full px-4 py-2 border rounded-lg" required placeholder="XXXX XXXX XXXX XXXX"></div><div class="mb-4"><label for="amount" class="block text-gray-700">Amount (MP)</label><input type="number" id="amount" min="0.01" step="0.01" class="w-full px-4 py-2 border rounded-lg" required></div><div class="mb-6"><label for="reason" class="block text-gray-700">Reason (Optional)</label><input type="text" id="reason" class="w-full px-4 py-2 border rounded-lg"></div><button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Send Money</button></form><div id="transfer-message" class="text-center mt-4"></div><p class="text-center mt-4"><a href="#" onclick="navigate('/dashboard')" class="text-blue-500">Back to Dashboard</a></p></div>`;
             document.getElementById('transfer-form').addEventListener('submit', handleTransfer);
-        }
-        
-        async function renderAdmin(path) {
-            // This function now relies on the background Supabase login for admins
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
-                content.innerHTML = `<p class="text-red-500 text-center">Admin authentication failed. Cannot fetch data.</p>`;
-                return;
-            }
-
-            if (path === '/admin') {
-                 renderAdminDashboard();
-            } else if (path.startsWith('/admin/user/')) {
-                const userId = path.split('/')[3];
-                renderAdminEditUser(userId);
-            }
         }
         
         async function renderAdminDashboard() {
             const { data: users, error } = await supabaseClient.from('profiles').select('*');
-            if (error) {
-                content.innerHTML = `<p class="text-red-500">Error fetching users: ${error.message}</p>`;
-                return;
-            }
-
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6">Admin Panel - Users</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead class="bg-gray-800 text-white">
-                                <tr>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Username</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Card Type</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Balance</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Status</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700">
-                                ${users.map(user => `
-                                    <tr class="border-b">
-                                        <td class="py-3 px-4">${user.username}</td>
-                                        <td class="py-3 px-4 font-semibold">${user.card_type}</td>
-                                        <td class="py-3 px-4">${user.card_type === 'Unlimited' ? '∞' : user.balance.toFixed(2)} MP</td>
-                                        <td class="py-3 px-4">${user.is_banned ? '<span class="text-red-500 font-semibold">Banned</span>' : '<span class="text-green-500 font-semibold">Active</span>'}</td>
-                                        <td class="py-3 px-4">
-                                            <button onclick="navigate('/admin/user/${user.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-bold py-1 px-2 rounded">Edit</button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
+            if (error) { content.innerHTML = `<p class="text-red-500">Error fetching users: ${error.message}</p>`; return; }
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg"><h2 class="text-3xl font-bold mb-6">Admin Panel - Users</h2><div class="overflow-x-auto"><table class="min-w-full bg-white"><thead class="bg-gray-800 text-white"><tr><th class="text-left py-3 px-4">Username</th><th class="text-left py-3 px-4">Card Type</th><th class="text-left py-3 px-4">Balance</th><th class="text-left py-3 px-4">Status</th><th class="text-left py-3 px-4">Actions</th></tr></thead><tbody class="text-gray-700">${users.map(user => `<tr><td class="py-3 px-4">${user.username}</td><td class="py-3 px-4">${user.card_type}</td><td class="py-3 px-4">${user.card_type === 'Unlimited' ? '∞' : user.balance.toFixed(2)} MP</td><td class="py-3 px-4">${user.is_banned ? '<span class="text-red-500">Banned</span>' : '<span class="text-green-500">Active</span>'}</td><td class="py-3 px-4"><button onclick="navigate('/admin/user/${user.id}')" class="bg-yellow-500 text-white text-sm py-1 px-2 rounded">Edit</button></td></tr>`).join('')}</tbody></table></div></div>`;
         }
 
         async function renderAdminEditUser(userId) {
             const { data: user, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
-            if (error || !user) {
-                content.innerHTML = `<p class="text-red-500">Error fetching user data.</p>`;
-                return;
-            }
-
-            content.innerHTML = `
-                <div class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto">
-                    <h2 class="text-3xl font-bold mb-6">Edit User: ${user.username}</h2>
-                    <form id="admin-edit-form">
-                         <div class="mb-4">
-                            <label for="balance" class="block text-gray-700 font-semibold mb-2">Balance (MP)</label>
-                            <input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg" value="${user.balance}">
-                        </div>
-                        <div class="mb-6">
-                            <label for="card-type" class="block text-gray-700 font-semibold mb-2">Card Type</label>
-                            <select id="card-type" class="w-full px-4 py-2 border rounded-lg bg-white">
-                                <option value="Platinum" ${user.card_type === 'Platinum' ? 'selected' : ''}>Platinum</option>
-                                <option value="VIP" ${user.card_type === 'VIP' ? 'selected' : ''}>VIP</option>
-                                <option value="Unlimited" ${user.card_type === 'Unlimited' ? 'selected' : ''}>Unlimited</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mb-4">Update User</button>
-                    </form>
-                    <div id="admin-message" class="text-center my-4"></div>
-                     <button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white font-bold py-2 px-4 rounded-lg">
-                        ${user.is_banned ? 'Unban User' : 'Ban User'}
-                    </button>
-                    <p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500 hover:underline">Back to Admin Dashboard</a></p>
-                </div>
-            `;
-            document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateUser(e, userId));
+            if (error || !user) { content.innerHTML = `<p class="text-red-500">Error fetching user data.</p>`; return; }
+            content.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg max-w-lg mx-auto"><h2 class="text-3xl font-bold mb-6">Edit User: ${user.username}</h2><form id="admin-edit-form"><div class="mb-4"><label for="balance" class="block text-gray-700">Balance (MP)</label><input type="number" id="balance" step="1" class="w-full px-4 py-2 border rounded-lg" value="${user.balance}"></div><div class="mb-4"><label for="card-type" class="block text-gray-700">Card Type</label><select id="card-type" class="w-full px-4 py-2 border rounded-lg bg-white"><option value="Platinum" ${user.card_type === 'Platinum' ? 'selected' : ''}>Platinum</option><option value="VIP" ${user.card_type === 'VIP' ? 'selected' : ''}>VIP</option><option value="Unlimited" ${user.card_type === 'Unlimited' ? 'selected' : ''}>Unlimited</option></select></div><div class="mb-6"><label for="reason" class="block text-gray-700">Reason for Change</label><input type="text" id="reason" class="w-full px-4 py-2 border rounded-lg" required placeholder="e.g., 'Bonus' or 'Correction'"></div><button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg mb-4">Update User</button></form><div id="admin-message" class="text-center my-4"></div><button id="ban-button" class="w-full ${user.is_banned ? 'bg-green-500' : 'bg-red-500'} text-white font-bold py-2 px-4 rounded-lg">${user.is_banned ? 'Unban User' : 'Ban User'}</button><p class="text-center mt-6"><a href="#" onclick="navigate('/admin')" class="text-blue-500">Back to Admin Dashboard</a></p></div>`;
+            document.getElementById('admin-edit-form').addEventListener('submit', (e) => handleAdminUpdateUser(e, userId, user.balance));
             document.getElementById('ban-button').addEventListener('click', () => handleAdminToggleBan(userId, user.is_banned));
         }
 
-
         // --- EVENT HANDLERS & LOGIC ---
-
         async function handleSignup(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -514,44 +257,20 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('signup-error');
             errorEl.textContent = '';
-
             const isAdmin = (email.toLowerCase() === 'mostafaalatawy@gmail.com');
-
             const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
-
-            if (error) {
-                errorEl.textContent = error.message;
-                return;
-            }
+            if (error) { errorEl.textContent = error.message; return; }
             if (user) {
                 await createProfile(user.id, username, isAdmin);
-                const message = isAdmin 
-                    ? 'Admin account created successfully! Please verify your email.'
-                    : 'Signup successful! Please check your email to verify your account.';
-                alert(message);
+                alert(isAdmin ? 'Admin account created! Please verify your email.' : 'Signup successful! Please verify your email.');
                 navigate('/login');
             }
         }
 
-        async function createProfile(userId, username, isAdmin = false) {
+        async function createProfile(userId, username, isAdmin) {
             const cardNumber = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
             const cvv = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10)).join('');
-
-            const { error } = await supabaseClient.from('profiles').insert({
-                id: userId,
-                username: username,
-                card_number: cardNumber,
-                cvv: cvv,
-                balance: 100.00,
-                initial_balance_spent: false,
-                is_admin: isAdmin,
-                is_banned: false,
-                card_type: isAdmin ? 'Unlimited' : 'Platinum'
-            });
-
-            if (error) {
-                console.error('Error creating profile:', error);
-            }
+            await supabaseClient.from('profiles').insert({ id: userId, username, card_number: cardNumber, cvv, is_admin: isAdmin, card_type: isAdmin ? 'Unlimited' : 'Platinum' });
         }
 
         async function handleLogin(e) {
@@ -560,14 +279,8 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
-
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                errorEl.textContent = error.message;
-            } else {
-                router();
-            }
+            if (error) { errorEl.textContent = error.message; } else { router(); }
         }
         
         async function handleAdminLogin(e) {
@@ -576,16 +289,12 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
-            
-            // Client-side check for admin credentials
             if (email.toLowerCase() === 'mostafaalatawy@gmail.com' && password === '123456789#Osama') {
                 sessionStorage.setItem('isAdminLoggedIn', 'true');
                 isAdminLoggedIn = true;
-                // Log in to Supabase in the background to get a valid session for API calls
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) {
-                    errorEl.textContent = "Admin login successful, but could not connect to the database. Please ensure the admin account exists in Supabase with the correct password.";
-                    // Still allow access to the panel view, but it may not show data
+                    errorEl.textContent = "Admin login valid, but DB connection failed. Ensure the admin account exists in Supabase with the correct password.";
                     setTimeout(() => navigate('/admin'), 2000);
                 } else {
                     navigate('/admin');
@@ -599,8 +308,7 @@
             sessionStorage.removeItem('isAdminLoggedIn');
             isAdminLoggedIn = false;
             await supabaseClient.auth.signOut();
-            currentUser = null;
-            userProfile = null;
+            currentUser = null; userProfile = null;
             navigate('/');
         }
         
@@ -608,168 +316,147 @@
             e.preventDefault();
             const recipientCard = document.getElementById('recipient-card').value.replace(/\s/g, '');
             const amount = parseFloat(document.getElementById('amount').value);
+            const reason = document.getElementById('reason').value;
             const messageEl = document.getElementById('transfer-message');
             messageEl.textContent = '';
 
-            if (isNaN(amount) || amount <= 0) {
-                messageEl.textContent = 'Invalid amount.';
-                messageEl.className = 'text-red-500 text-center mt-4';
-                return;
-            }
+            if (isNaN(amount) || amount <= 0) { messageEl.textContent = 'Invalid amount.'; return; }
+            if (userProfile.card_type !== 'Unlimited' && userProfile.balance < amount) { messageEl.textContent = 'Insufficient funds.'; return; }
             
-            if (userProfile.card_type !== 'Unlimited' && userProfile.balance <= 100 && !userProfile.initial_balance_spent) {
-                 messageEl.textContent = 'You cannot transfer your initial 100 MP bonus.';
-                 messageEl.className = 'text-red-500 text-center mt-4';
-                 return;
-            }
+            const { data: recipient, error: recipientError } = await supabaseClient.from('profiles').select('id, balance').eq('card_number', recipientCard).single();
+            if (recipientError || !recipient) { messageEl.textContent = 'Recipient not found.'; return; }
+            if (recipient.id === userProfile.id) { messageEl.textContent = 'Cannot transfer to yourself.'; return; }
 
-            if (userProfile.card_type !== 'Unlimited' && userProfile.balance < amount) {
-                messageEl.textContent = 'Insufficient funds.';
-                messageEl.className = 'text-red-500 text-center mt-4';
-                return;
-            }
-
-            const { data: recipient, error: recipientError } = await supabaseClient
-                .from('profiles')
-                .select('id, balance')
-                .eq('card_number', recipientCard)
-                .single();
-
-            if (recipientError || !recipient) {
-                messageEl.textContent = 'Recipient card number not found.';
-                messageEl.className = 'text-red-500 text-center mt-4';
-                return;
-            }
-            
-            if (recipient.id === userProfile.id) {
-                messageEl.textContent = 'You cannot transfer money to yourself.';
-                messageEl.className = 'text-red-500 text-center mt-4';
-                return;
-            }
-            
+            // Use a batch of writes to ensure atomicity
             const newRecipientBalance = recipient.balance + amount;
             let senderUpdate = { initial_balance_spent: true };
-            
             if (userProfile.card_type !== 'Unlimited') {
                 senderUpdate.balance = userProfile.balance - amount;
             }
 
-            const { error: senderError } = await supabaseClient
-                .from('profiles')
-                .update(senderUpdate)
-                .eq('id', userProfile.id);
+            const { error: updateError } = await supabaseClient.from('profiles').update(senderUpdate).eq('id', userProfile.id);
+            const { error: recipientUpdateError } = await supabaseClient.from('profiles').update({ balance: newRecipientBalance }).eq('id', recipient.id);
+            
+            // Log transaction
+            const { error: txError } = await supabaseClient.from('transactions').insert({
+                sender_id: userProfile.id,
+                recipient_id: recipient.id,
+                amount: amount,
+                type: 'transfer',
+                reason: reason
+            });
 
-            const { error: recipientUpdateError } = await supabaseClient
-                .from('profiles')
-                .update({ balance: newRecipientBalance })
-                .eq('id', recipient.id);
-
-            if (senderError || recipientUpdateError) {
-                messageEl.textContent = 'Transaction failed. Please try again.';
-                messageEl.className = 'text-red-500 text-center mt-4';
+            if (updateError || recipientUpdateError || txError) {
+                messageEl.textContent = 'Transaction failed.';
+                // Ideally, implement a rollback here
             } else {
                 messageEl.textContent = `Successfully transferred ${amount.toFixed(2)} MP!`;
-                messageEl.className = 'text-green-500 text-center mt-4';
                 document.getElementById('transfer-form').reset();
                 await fetchUserProfile();
             }
         }
         
-        async function handleAdminUpdateUser(e, userId) {
+        async function handleAdminUpdateUser(e, userId, oldBalance) {
             e.preventDefault();
             const newBalance = parseFloat(document.getElementById('balance').value);
             const cardType = document.getElementById('card-type').value;
+            const reason = document.getElementById('reason').value;
             const messageEl = document.getElementById('admin-message');
             
-            if (isNaN(newBalance) || newBalance < 0) {
-                 messageEl.textContent = 'Invalid balance amount.';
-                 messageEl.className = 'text-red-500 text-center my-4';
-                 return;
-            }
+            if (isNaN(newBalance) || newBalance < 0 || !reason) { messageEl.textContent = 'Invalid balance or missing reason.'; return; }
             
             const { error } = await supabaseClient.from('profiles').update({ balance: newBalance, card_type: cardType }).eq('id', userId);
             
-            if (error) {
-                messageEl.textContent = `Error: ${error.message}`;
-                messageEl.className = 'text-red-500 text-center my-4';
-            } else {
+            if (error) { messageEl.textContent = `Error: ${error.message}`; } 
+            else {
+                // Log the balance change as a transaction
+                const balanceChange = newBalance - oldBalance;
+                if (balanceChange !== 0) {
+                    await supabaseClient.from('transactions').insert({
+                        recipient_id: userId,
+                        amount: Math.abs(balanceChange),
+                        type: balanceChange > 0 ? 'admin_add' : 'admin_remove',
+                        reason: `Admin: ${reason}`
+                    });
+                }
                 messageEl.textContent = 'User updated successfully!';
-                messageEl.className = 'text-green-500 text-center my-4';
             }
         }
 
         async function handleAdminToggleBan(userId, isCurrentlyBanned) {
             const messageEl = document.getElementById('admin-message');
             const { error } = await supabaseClient.from('profiles').update({ is_banned: !isCurrentlyBanned }).eq('id', userId);
-
-            if (error) {
-                messageEl.textContent = `Error: ${error.message}`;
-                messageEl.className = 'text-red-500 text-center my-4';
-            } else {
+            if (error) { messageEl.textContent = `Error: ${error.message}`; } 
+            else {
                 messageEl.textContent = `User has been ${!isCurrentlyBanned ? 'banned' : 'unbanned'}.`;
-                messageEl.className = 'text-green-500 text-center my-4';
                 renderAdminEditUser(userId);
             }
         }
 
-
-        // --- HELPER FUNCTIONS ---
-
-        async function fetchUserProfile() {
+        async function handleDailyLogin() {
             if (!currentUser) return;
-            const { data, error } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            const today = new Date().toISOString().split('T')[0];
+            const { data, error } = await supabaseClient.from('daily_logins').select('last_login_date').eq('user_id', currentUser.id).single();
 
-            if (error) {
-                console.error('Error fetching profile:', error);
-                if (error.code === 'PGRST116') { // This code means "0 rows returned"
-                    console.log('User exists in auth, but not in profiles. Signing out.');
-                    await supabaseClient.auth.signOut();
-                    navigate('/login');
-                }
-            } else {
-                userProfile = data;
-                if (userProfile.is_banned) {
-                    alert('Your account has been banned.');
-                    await supabaseClient.auth.signOut();
-                    navigate('/');
-                }
+            if (!data || data.last_login_date < today) {
+                // Grant bonus
+                const newBalance = userProfile.balance + 1;
+                await supabaseClient.from('profiles').update({ balance: newBalance }).eq('id', currentUser.id);
+                // Log transaction
+                await supabaseClient.from('transactions').insert({ recipient_id: currentUser.id, amount: 1, type: 'daily_bonus', reason: 'Daily login bonus' });
+                // Update login date
+                await supabaseClient.from('daily_logins').upsert({ user_id: currentUser.id, last_login_date: today });
+                // Refresh profile to show new balance immediately
+                await fetchUserProfile();
             }
         }
 
-        function formatCardNumber(num) {
-            if (!num) return 'XXXX XXXX XXXX XXXX';
-            return num.match(/.{1,4}/g).join(' ');
+        // --- HELPER FUNCTIONS ---
+        async function fetchUserProfile() {
+            if (!currentUser) return;
+            const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (error) {
+                console.error('Error fetching profile:', error);
+                if (error.code === 'PGRST116') { await supabaseClient.auth.signOut(); navigate('/login'); }
+            } else {
+                userProfile = data;
+                if (userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
+            }
         }
+
+        function formatCardNumber(num) { return num ? num.match(/.{1,4}/g).join(' ') : 'XXXX XXXX XXXX XXXX'; }
         
+        function formatTransaction(tx) {
+            const isCredit = tx.recipient_id === currentUser.id;
+            const amountColor = isCredit ? 'text-green-500' : 'text-red-500';
+            const sign = isCredit ? '+' : '-';
+            const date = new Date(tx.created_at).toLocaleDateString();
+
+            let title = 'Unknown Transaction';
+            switch (tx.type) {
+                case 'transfer': title = isCredit ? 'Received Transfer' : 'Sent Transfer'; break;
+                case 'admin_add': title = 'Admin Deposit'; break;
+                case 'admin_remove': title = 'Admin Withdrawal'; break;
+                case 'daily_bonus': title = 'Daily Bonus'; break;
+            }
+
+            return `<div class="border-b pb-2"><div class="flex justify-between items-center"><p class="font-semibold">${title}</p><p class="font-semibold ${amountColor}">${sign} ${tx.amount.toFixed(2)} MP</p></div><p class="text-sm text-gray-500">${tx.reason || 'No reason provided'}</p><p class="text-xs text-gray-400 text-right">${date}</p></div>`;
+        }
+
         function setupCardInteraction() {
             const cardFlipper = document.getElementById('card-flipper');
             const flipButton = document.getElementById('card-flip-btn');
             if (!cardFlipper || !flipButton) return;
-
             const hideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" x2="22" y1="2" y2="22"></line></svg>`;
-            
             flipButton.innerHTML = hideIcon;
-
-            // Single click on the button flips the card to the back
-            flipButton.addEventListener('click', () => {
-                cardFlipper.classList.add('is-flipped');
-            });
-
-            // Double click on the card itself flips it back to the front
-            cardFlipper.addEventListener('dblclick', () => {
-                cardFlipper.classList.remove('is-flipped');
-            });
+            flipButton.addEventListener('click', () => cardFlipper.classList.add('is-flipped'));
+            cardFlipper.addEventListener('dblclick', () => cardFlipper.classList.remove('is-flipped'));
         }
         
         // --- INITIALIZATION ---
         window.addEventListener('hashchange', router);
         window.addEventListener('load', router);
         window.navigate = navigate;
-
     </script>
 </body>
 </html>
