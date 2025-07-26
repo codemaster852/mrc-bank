@@ -11,7 +11,7 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .card {
+        .card-base {
             background: linear-gradient(135deg, #6B7280 0%, #1F2937 100%);
         }
         .card-platinum {
@@ -22,6 +22,57 @@
         }
         .card-unlimited {
             background: linear-gradient(135deg, #1f2937 0%, #000000 100%);
+        }
+
+        /* Card Flip Animation */
+        .card-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 220px; /* Fixed height for the card */
+        }
+        .card-flipper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .card-container.interactive:hover .card-flipper {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .card-back {
+            transform: rotateY(180deg);
+            align-items: center;
+        }
+        .card-back .cvv-strip {
+            width: 100%;
+            height: 50px;
+            background: #374151;
+            margin-top: 1.5rem;
+        }
+        .card-back .cvv-box {
+            background: white;
+            color: #111827;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            text-align: right;
+            width: 80%;
+            font-style: italic;
+            font-family: monospace;
+            font-size: 1.25rem;
         }
     </style>
 </head>
@@ -220,28 +271,44 @@
             content.innerHTML = `
                 <div class="grid md:grid-cols-2 gap-8">
                     <!-- Virtual Card -->
-                    <div class="card ${cardClass} p-6 rounded-xl shadow-2xl text-white flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center">
-                                <h3 class="text-lg font-semibold">MRC Virtual Card</h3>
-                                <span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span>
+                    <div class="relative">
+                        <div id="card-container" class="card-container">
+                            <div class="card-flipper">
+                                <!-- Card Front -->
+                                <div class="card-face ${cardClass} text-white">
+                                    <div>
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-lg font-semibold">MRC Virtual Card</h3>
+                                            <span class="font-bold uppercase text-sm px-2 py-1 bg-white/20 rounded-md">${userProfile.card_type || 'Platinum'}</span>
+                                        </div>
+                                        <div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div>
+                                    </div>
+                                    <div class="flex justify-between items-end mt-4">
+                                        <div>
+                                            <p class="text-xs text-gray-200">Card Holder</p>
+                                            <p class="font-medium">${userProfile.username}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-200">Expires</p>
+                                            <p class="font-medium">--/--</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Card Back -->
+                                <div class="card-face card-back ${cardClass} text-white">
+                                    <div class="w-full h-full flex flex-col justify-center items-center">
+                                        <div class="cvv-strip"></div>
+                                        <div class="cvv-box mt-4">
+                                            <span>${userProfile.cvv}</span>
+                                        </div>
+                                        <p class="text-xs mt-2 text-gray-300">CVV</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mt-8 text-2xl font-mono tracking-widest">${formatCardNumber(userProfile.card_number)}</div>
                         </div>
-                        <div class="flex justify-between items-end mt-4">
-                            <div>
-                                <p class="text-xs text-gray-200">Card Holder</p>
-                                <p class="font-medium">${userProfile.username}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-200">CVV</p>
-                                <p class="font-medium">${userProfile.cvv}</p>
-                            </div>
-                             <div>
-                                <p class="text-xs text-gray-200">Expires</p>
-                                <p class="font-medium">--/--</p>
-                            </div>
-                        </div>
+                        <button id="card-lock-btn" class="absolute top-0 right-0 -mt-2 -mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-gray-900 transition">
+                            <!-- SVG icon will be injected here -->
+                        </button>
                     </div>
 
                     <!-- Balance and Actions -->
@@ -254,6 +321,7 @@
                     </div>
                 </div>
             `;
+            setupCardInteraction();
         }
         
         function renderTransfer() {
@@ -379,8 +447,7 @@
             const errorEl = document.getElementById('signup-error');
             errorEl.textContent = '';
 
-            // Admin account is created if the email matches
-            const isAdmin = (email === 'mostafaalatawy@gmail.com');
+            const isAdmin = (email.toLowerCase() === 'mostafaalatawy@gmail.com');
 
             const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
 
@@ -583,70 +650,38 @@
             return num.match(/.{1,4}/g).join(' ');
         }
         
+        function setupCardInteraction() {
+            const cardContainer = document.getElementById('card-container');
+            const lockButton = document.getElementById('card-lock-btn');
+            if (!cardContainer || !lockButton) return;
+
+            const lockedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+            const unlockedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+
+            let isInteractive = false;
+            
+            function updateButton() {
+                if (isInteractive) {
+                    cardContainer.classList.add('interactive');
+                    lockButton.innerHTML = unlockedIcon;
+                } else {
+                    cardContainer.classList.remove('interactive');
+                    lockButton.innerHTML = lockedIcon;
+                }
+            }
+            
+            lockButton.addEventListener('click', () => {
+                isInteractive = !isInteractive;
+                updateButton();
+            });
+
+            updateButton(); // Set initial state
+        }
+        
         // --- INITIALIZATION ---
         window.addEventListener('hashchange', router);
         window.addEventListener('load', router);
         window.navigate = navigate;
-        
-        /*
-        -- Supabase SQL for Tables and Policies
-        -- RUN THIS IN YOUR SUPABASE SQL EDITOR TO UPDATE YOUR DATABASE
-
-        -- 1. Drop all old policies to prevent conflicts
-        DROP POLICY IF EXISTS "Users can view their own profile." ON public.profiles;
-        DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
-        DROP POLICY IF EXISTS "Admins can view all profiles." ON public.profiles;
-        DROP POLICY IF EXISTS "Admins can update all profiles." ON public.profiles;
-        DROP POLICY IF EXISTS "Authenticated users can see card numbers for transfers." ON public.profiles;
-        DROP POLICY IF EXISTS "Allow public insert for new user profiles" ON public.profiles;
-        DROP POLICY IF EXISTS "Users can view own profile, and admins can view all" ON public.profiles;
-        DROP POLICY IF EXISTS "Users can update own profile, and admins can update all" ON public.profiles;
-
-        -- 2. Add the 'card_type' column if it doesn't already exist
-        DO $$
-        BEGIN
-          IF NOT EXISTS(SELECT *
-                        FROM information_schema.columns
-                        WHERE table_name='profiles' and column_name='card_type')
-          THEN
-              ALTER TABLE "public"."profiles" ADD COLUMN "card_type" text NOT NULL DEFAULT 'Platinum';
-          END IF;
-        END $$;
-
-        -- 3. Create a helper function to check for admin status safely
-        -- This function prevents the "infinite recursion" error
-        CREATE OR REPLACE FUNCTION is_admin(user_id uuid)
-        RETURNS boolean AS $$
-          SELECT EXISTS (
-            SELECT 1
-            FROM public.profiles
-            WHERE id = user_id AND is_admin = true
-          );
-        $$ LANGUAGE sql SECURITY DEFINER;
-
-        -- 4. Create new, robust policies using the helper function
-
-        -- POLICY: Allow profile creation for any new user.
-        CREATE POLICY "Allow public insert for new user profiles"
-        ON public.profiles FOR INSERT
-        WITH CHECK (true);
-
-        -- POLICY: A user can view their own profile, OR an admin can view any profile.
-        CREATE POLICY "Users can view own profile, and admins can view all"
-        ON public.profiles FOR SELECT
-        USING (
-          auth.uid() = id OR
-          is_admin(auth.uid())
-        );
-
-        -- POLICY: A user can update their own profile, OR an admin can update any profile.
-        CREATE POLICY "Users can update own profile, and admins can update all"
-        ON public.profiles FOR UPDATE
-        USING (
-          auth.uid() = id OR
-          is_admin(auth.uid())
-        );
-        */
 
     </script>
 </body>
