@@ -119,6 +119,10 @@
 
             if (currentUser) {
                 await fetchUserProfile();
+                if (userProfile && userProfile.is_banned) {
+                    renderBannedScreen();
+                    return;
+                }
                 if (!userProfile && path !== '/') { return; }
                 if (userProfile && !isAdminLoggedIn) { await handleDailyLogin(); }
             }
@@ -171,6 +175,17 @@
             } else {
                 userMenu.innerHTML = `<div class="space-x-2"><button onclick="navigate('/login')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">User Login</button><button onclick="navigate('/signup')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Sign Up</button></div>`;
             }
+        }
+        
+        function renderBannedScreen() {
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-red-900 text-white flex flex-col items-center justify-center text-center p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                    <h1 class="text-5xl font-bold mt-6">Account Suspended</h1>
+                    <p class="text-xl mt-4">Your account has been banned due to a violation of our terms of service.</p>
+                    <p class="mt-2">Please contact support for further information.</p>
+                </div>
+            `;
         }
 
         function renderHomepage() {
@@ -297,6 +312,14 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('signup-error');
             errorEl.textContent = '';
+
+            // Check if email belongs to a banned user
+            const { data: bannedProfile, error: checkError } = await supabaseClient.from('profiles').select('is_banned').eq('id', email).single();
+            if (bannedProfile && bannedProfile.is_banned) {
+                errorEl.textContent = 'This email is associated with a banned account and cannot be used to sign up.';
+                return;
+            }
+
             const isAdmin = (email.toLowerCase() === 'm14363270@gmail.com');
             const { data: { user }, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) { errorEl.textContent = error.message; return; }
@@ -319,6 +342,14 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
             errorEl.textContent = '';
+            
+            // Check if the user is banned before attempting to log in
+            const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('is_banned').eq('id', email).single();
+            if (profile && profile.is_banned) {
+                errorEl.textContent = 'This account is suspended.';
+                return;
+            }
+
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
                 if (error.message.includes('Email not confirmed')) {
@@ -467,7 +498,6 @@
                 return;
             }
             userProfile = data;
-            if (userProfile && userProfile.is_banned) { alert('Your account has been banned.'); await supabaseClient.auth.signOut(); navigate('/'); }
         }
 
         function formatCardNumber(num) { return num ? num.match(/.{1,4}/g).join(' ') : 'XXXX XXXX XXXX XXXX'; }
